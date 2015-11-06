@@ -1,0 +1,39 @@
+#!/bin/sh
+#
+# rc.local
+#
+# This script is executed at the end of each multiuser runlevel.
+# Make sure that the script will "" on success or any other
+# value on error.
+#
+# In order to enable or disable this script just change the execution
+# bits.
+#
+# By default this script does nothing.
+
+# Desactivate drm_kms_helper poll
+if [ -f /sys/module/drm_kms_helper/parameters/poll ];then
+  echo '--> Desactivate drm_kms_helper poll...'
+  echo 0 > /sys/module/drm_kms_helper/parameters/poll
+fi
+
+#############################################################
+# Load kvm kernel modules :
+modprobe kvm
+if [ $(cat /proc/cpuinfo | grep Intel | wc -l) -gt 0 ]; then
+    modprobe kvm_intel
+else
+    modprobe kvm_amd
+fi
+
+# Load nbd driver for qemu utils
+modprobe nbd max_part=4
+
+# Launch a custom script and remove it once done
+if [ -f /etc/init_once ]; then
+        /etc/init_once
+        rm /etc/init_once
+fi
+#############################################################
+
+exit 0
