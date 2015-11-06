@@ -1,5 +1,6 @@
-# migrations_UCC-15
-Reproducible migrations presented on UCC'15 paper "Scheduling Live-Migrations for Fast, Adaptable and Energy Efficient Relocation Operations"
+# Reproducible migrations experiments
+
+This repository aims to provide a basis for reproducible migrations experiments presented on UCC'15 paper "Scheduling Live-Migrations for Fast, Adaptable and Energy Efficient Relocation Operations"
 
 ## Setup the environment
 
@@ -11,12 +12,14 @@ Start from a g5k debian release:
 `kaenv3 -l`
 For example: `wheezy-x64-base`
 
-Add the boot script <TO PROVIDE>, install and configure qemu and libvirt <FROM qemu-patch repo WIKI>.
+Add the boot script <TO PROVIDE>, install and configure qemu and libvirt
+a patched version of qemu allowing to retrieve VMs' dirty pages informations is available here https://github.com/btrplace/qemu-patch
+Checkout the branch 'ucc-15'
 
 ### Create a custom VM image
 
 It can be whatever you want, just select THE operating system you master.
-Then add the init script <TO PROVIDE>
+Then add the init script <TO PROVIDE on subdir>
 
 ## Deploy
 
@@ -34,7 +37,8 @@ Retrieve the list of reserved nodes:
 
 ### Environment configuration
 
-Get the deployment script from <g5k_scripts REPO, custom branch !>
+Get the deployment script from https://github.com/vincent-k/scripts-g5k
+Checkout the branch 'ucc-15'
 
 First, edit the `config` file, here are the options you should care about:
 
@@ -70,6 +74,7 @@ Retrieve it from the repo and compile it
 ### Prepare the scenario execution
 
 The `translate` file must be modified to translate VMs and g5k nodes names in order to reflect BtrPlace internal VMs and nodes names:
+
 `vm-1 vm#0`
 `vm-1 vm#0`
 ...
@@ -79,7 +84,7 @@ The `translate` file must be modified to translate VMs and g5k nodes names in or
 
 The scenarios JSON files can be retrieve here: <repo subfolder>
 
-Start trafic shaping if necessary using the script `shaping` <TO PROVIDE in g5k_script>
+Start trafic shaping if necessary using the script `shaping` <TO PROVIDE in subdir>
 
 ### Start the reconfiguration plan execution:
 
