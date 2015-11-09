@@ -23,11 +23,11 @@ import java.io.IOException;
 import java.util.*;
 
 /**
- * Created by vkherbac on 19/02/15.
+ * @author Vincent Kherbache
  */
 public class Random {
 
-    String path = new File("").getAbsolutePath() + "/src/test/java/org/btrplace/scheduler/tests/ucc15/random/";
+    String path = new File("").getAbsolutePath() + "/src/test/java/org/btrplace/scheduler/ucc15/random/";
 
     public Map<VM,Node> randomTest(String fileName, Map<VM,Node> placedVMs) {
 

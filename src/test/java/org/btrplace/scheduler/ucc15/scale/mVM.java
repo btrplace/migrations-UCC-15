@@ -27,12 +27,12 @@ import java.util.Collections;
 import java.util.List;
 
 /**
- * Created by vkherbac on 11/03/15.
+ * @author Vincent Kherbache
  */
 public class mVM {
 
     String path = new File("").getAbsolutePath() +
-            "/src/test/java/org/btrplace/scheduler/tests/ucc15/scale/";
+            "/src/test/java/org/btrplace/scheduler/ucc15/scale/";
 
     public SolvingStatistics decommissioning_10gb() throws SchedulerException,ContradictionException {
 

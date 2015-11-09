@@ -24,12 +24,12 @@ import java.util.Collections;
 import java.util.List;
 
 /**
- * Created by vkherbac on 11/03/15.
+ * @author Vincent Kherbache
  */
 public class BtrPlace {
 
     String path = new File("").getAbsolutePath() +
-            "/src/test/java/org/btrplace/scheduler/tests/ucc15/";
+            "/src/test/java/org/btrplace/scheduler/ucc15/";
 
     public SolvingStatistics decommissioning_10gb() throws SchedulerException,ContradictionException {
 
@@ -118,7 +118,7 @@ public class BtrPlace {
         net.connect(1000, swDstRack1, dstNodes.subList(0,nbNodesRack));
         net.connect(10000, swMain, swSrcRack1, swSrcRack2, swDstRack1);
         mo.attach(net);
-        net.generateDot(path + "topology.dot", false);
+        //net.generateDot(path + "topology.dot", false);
 
         // Set parameters
         DefaultParameters ps = new DefaultParameters();
@@ -246,7 +246,7 @@ public class BtrPlace {
         net.connect(1000, swDstRack2, dstNodes.subList(nbNodesRack,nbNodesRack*2));
         net.connect(20000, swMain, swSrcRack1, swSrcRack2, swSrcRack3, swSrcRack4, swDstRack1, swDstRack2);
         mo.attach(net);
-        net.generateDot(path + "topology.dot", false);
+        //net.generateDot(path + "topology.dot", false);
 
         // Set parameters
         DefaultParameters ps = new DefaultParameters();
@@ -387,7 +387,7 @@ public class BtrPlace {
         net.connect(40000, swMain, swSrcRack1, swSrcRack2, swSrcRack3, swSrcRack4, swSrcRack5, swSrcRack6, swSrcRack7, swSrcRack8,
                 swDstRack1, swDstRack2, swDstRack3, swDstRack4);
         mo.attach(net);
-        net.generateDot(path + "topology.dot", false);
+        //net.generateDot(path + "topology.dot", false);
 
         // Set parameters
         DefaultParameters ps = new DefaultParameters();
@@ -569,7 +569,7 @@ public class BtrPlace {
                 swDstRack9, swDstRack10
         );
         mo.attach(net);
-        net.generateDot(path + "topology.dot", false);
+        //net.generateDot(path + "topology.dot", false);
 
         // Set parameters
         DefaultParameters ps = new DefaultParameters();

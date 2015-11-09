@@ -30,12 +30,12 @@ import java.util.Collections;
 import java.util.List;
 
 /**
- * Created by vkherbac on 06/11/15.
+ * @author Vincent Kherbache
  */
 public class mVM {
 
     String path = new File("").getAbsolutePath() +
-            "/src/test/java/org/btrplace/scheduler/tests/ucc15/energy/";
+            "/src/test/java/org/btrplace/scheduler/ucc15/energy/";
 
     @Test
     public void energyTest() throws SchedulerException {
