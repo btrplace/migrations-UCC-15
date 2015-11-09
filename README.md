@@ -11,7 +11,7 @@ Start from a g5k debian release: `kaenv3 -l`. For example select: `wheezy-x64-ba
 Once done, modify the `/etc/rc.local` file like [this one] (https://github.com/btrplace/migrations-UCC-15/blob/master/images/node/rc.local) , then put [this custom init script] (https://github.com/btrplace/migrations-UCC-15/blob/master/images/node/init_once) in `/etc/` 
 
 Finally, install and setup qemu and libvirt.
-A patched version of qemu that allows to retrieve VMs' dirty pages informations is available [here] (https://github.com/btrplace/qemu-patch). Simply follow the informations on the [wiki page] (https://github.com/btrplace/qemu-patch/wiki) to see how it works.
+If you want, a patched version of qemu allowing to retrieve VMs' dirty pages informations is available [here] (https://github.com/btrplace/qemu-patch). Simply follow the informations on the [wiki page] (https://github.com/btrplace/qemu-patch/wiki) to see how it works.
 
 ### Create a custom VM image
 
@@ -42,27 +42,36 @@ kadeploy3 -e debian-sid-qemu -f ./files/nodes  -o ./files/nodes_ok -k
 Get the deployment script from https://github.com/vincent-k/scripts-g5k
 Checkout the branch 'ucc-15'
 
-First, edit the `config` file, here are the options you should care about:
+First, edit the `config` file, here are the options you have to care about:
 
-* VM_VPU
-* VM_MEM
-* NB_VMS_PER_NODE
-* Vm_BASE_IMG
+* `VM_VPU`
+* `VM_MEM`
+* `NB_VMS_PER_NODE`
+* `VM_BASE_IMG`
 
-Define a controller node, an NFS node, hosting and idle nodes:
+Define a controller node, an NFS node, hosting and idle nodes by adding servers hostname to the appropriate files, for example:
 
 ``` shell
+# Define controler node, NFS server node, hosting and idle nodes
 head -1 files/nodes_ok > ./files/ctl_node
 head -2 | tail -1 files/nodes_ok > ./files/nfs_srv
-tail -n+23 | head -5 files/nodes_ok > files/hosting_nodes
+tail -n+3 | head -5 files/nodes_ok > files/hosting_nodes
 tail -5 files/nodes_ok > files/idle_nodes
-cat files/hosting_nodes files/idle_nodes > files/nodes_list
-g5k-subnets -im > ./files/ips_macs
-echo -n > files/ips_names
-echo -n > files/vms_ips
 ```
 
 In this example, the first node will be the controler, the second node the NFS server and the next 5 nodes will host the VMs.
+
+Then populate the other files, it simply consists to create a global list of active nodes (hosting + idle) and to retrieve the list of reserved ip<->mac addresses. It can be done like this:
+
+``` shell
+# Populate the global list of 'active' nodes and the list of reserved ips<->macs addresses
+cat files/hosting_nodes files/idle_nodes > files/nodes_list
+g5k-subnets -im > ./files/ips_macs
+
+# Also ensure these two files are empty
+echo -n > files/ips_names
+echo -n > files/vms_ips
+```
 
 ### Setup everything:
 
@@ -77,12 +86,12 @@ In this example, the first node will be the controler, the second node the NFS s
 Retrieve it from https://github.com/btrplace/g5k-executor and compile it:
 
 ``` shell
-git clone -b ucc-15 git@github.com:btrplace/g5k-executor.git
+git clone -b ucc-15 https://github.com/btrplace/g5k-executor.git
 cd g5k-executor
 mvn clean install
 ```
 
-A tarball should be generated into the `target` folder, you can then check the executor cmdline options for example:
+A distribution tarball is generated into the `target` folder, you can start to use the executor for example to check the cmdline options :
 
 ``` shell
 cd target
@@ -115,15 +124,15 @@ Altenatively, you can regenerate them from this repository. Just do the followin
 
 ``` shell
 # Get and compile the UCC'15 version of the BtrPlace scheduler
-git clone -b ucc-15 --single-branch --depth 1 git@github.com:btrplace/scheduler-devs.git
+git clone -b ucc-15 --single-branch --depth 1 https://github.com/btrplace/scheduler-devs.git
 cd scheduler-devs
 mvn clean install -Dmaven.test.skip=true
 cd ../
 
-# Generate all experiments JSON files
-git clone --depth 1 git@github.com:btrplace/migrations-UCC-15.git
+# Generate all experiments JSON files (use at least 2G for JVM memory allocation pool) 
+git clone --depth 1 https://github.com/btrplace/migrations-UCC-15.git
 cd migrations-UCC-15
-mvn test
+MAVEN_OPTS="-Xmx2G -Xms2G" mvn compiler:testCompile surefire:test
 ```
 
 ### Prepare the scenario execution
