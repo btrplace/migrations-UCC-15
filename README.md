@@ -91,7 +91,21 @@ cd g5k-1.0-SNAPSHOT/
 ./g5kExecutor
 ```
 
-You'll just need to edit the migration script `src/main/bin/scripts/migrate.sh` and modify the variable `VM_BASE_IMG` to match your custom VM image location.
+The output should be:
+
+``` txt
+Option "-i (--input-json)" is required
+g5kExecutor [-d scripts_dir] (-mvm|-buddies -p <x>) -i <json_file> -o <output_file>
+ -buddies (--memory-buddies-scheduler) : Select the scheduler of Memory buddies
+ -d (--scripts-dir) VAL                : Scripts location relative directory
+ -i (--input-json) VAL                 : The json reconfiguration plan to read
+                                         (can be a .gz)
+ -mvm (--mvm-scheduler)                : Select the scheduler of mVM (default
+                                         choice)
+ -o (--output-csv) VAL                 : Print actions durations to this file
+```
+
+Finally, you'll just need to edit the migration script `src/main/bin/scripts/migrate.sh` and modify the variable `VM_BASE_IMG` to match your custom VM image location.
 
 ### Get or generate the JSON file of the experiment you want to replay
 
