@@ -28,6 +28,7 @@
     <description>UCC'15 experiments.</description>
     <packaging>pom</packaging>
     <url>http://www.btrplace.org</url>
+
     <developers>
         <developer>
             <name>Vincent Kherbache</name>
@@ -35,9 +36,11 @@
             <organization>INRIA</organization>
         </developer>
     </developers>
+
     <properties>
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
     </properties>
+
     <licenses>
         <license>
             <name>GNU Lesser General Public License v3</name>
@@ -47,6 +50,12 @@
     </licenses>
 
     <dependencies>
+        <dependency>
+            <groupId>org.testng</groupId>
+            <artifactId>testng</artifactId>
+            <version>6.8.8</version>
+            <scope>test</scope>
+        </dependency>
         <dependency>
             <groupId>org.btrplace</groupId>
             <artifactId>scheduler-api</artifactId>
@@ -76,15 +85,6 @@
             <groupId>org.btrplace</groupId>
             <artifactId>bench</artifactId>
             <version>0.42-UCC15</version>
-        </dependency>
-        
-        <dependency>
-            <groupId>org.testng</groupId>
-            <artifactId>testng</artifactId>
-            <version>6.8.8</version>
-            <type>jar</type>
-            <scope>test</scope>
-            <optional>false</optional>
         </dependency>
         <dependency>
             <groupId>org.slf4j</groupId>
@@ -135,25 +135,7 @@
                 <version>2.14.1</version>
                 <configuration>
                     <includes>
-                        <include>**/*Test.java</include>
-                    </includes>
-                </configuration>
-            </plugin>
-            <plugin>
-                <groupId>org.apache.maven.plugins</groupId>
-                <artifactId>maven-failsafe-plugin</artifactId>
-                <version>2.14.1</version>
-                <executions>
-                    <execution>
-                        <goals>
-                            <goal>integration-test</goal>
-                            <goal>verify</goal>
-                        </goals>
-                    </execution>
-                </executions>
-                <configuration>
-                    <includes>
-                        <include>**/*Integration.java</include>
+                        <include>**/*.java</include>
                     </includes>
                 </configuration>
             </plugin>
@@ -161,10 +143,6 @@
     </build>
 
     <repositories>
-        <repository>
-            <id>choco.repos</id>
-            <url>http://www.emn.fr/z-info/choco-repo/mvn/repository/</url>
-        </repository>
         <repository>
             <id>sonatype</id>
             <url>https://oss.sonatype.org/service/local/staging/deploy/maven2</url>
