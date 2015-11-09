@@ -38,7 +38,7 @@ public class mVM {
             "/src/test/java/org/btrplace/scheduler/tests/ucc15/energy/";
 
     @Test
-    public void EnergyTest() throws SchedulerException {
+    public void energyTest() throws SchedulerException {
 
         // Set nb of nodes and vms
         int nbNodesRack = 24;

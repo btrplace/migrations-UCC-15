@@ -29,7 +29,7 @@ public class Random {
 
     String path = new File("").getAbsolutePath() + "/src/test/java/org/btrplace/scheduler/tests/ucc15/random/";
 
-    public Map<VM,Node> RandomTest(String fileName, Map<VM,Node> placedVMs) {
+    public Map<VM,Node> randomTest(String fileName, Map<VM,Node> placedVMs) {
 
         // Set nb of nodes and vms
         int nbNodes = 4;
@@ -181,7 +181,7 @@ public class Random {
     }
 
     @Test
-    public void createRandom() {
+    public void runRandom() {
 
         int nb = 50;
 
@@ -189,7 +189,7 @@ public class Random {
         Map<VM,Node> newMapVMs = null;
 
         for (int i=1; i<=nb; i++) {
-            while (newMapVMs == null) { newMapVMs = RandomTest("random." + i + ".json", mapVMs); }
+            while (newMapVMs == null) { newMapVMs = randomTest("random." + i + ".json", mapVMs); }
             mapVMs.clear(); mapVMs.putAll(newMapVMs);
             newMapVMs.clear(); newMapVMs = null;
         }
