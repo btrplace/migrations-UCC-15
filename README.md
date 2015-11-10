@@ -31,7 +31,7 @@ src
 * `Power capping` experiments presented on section `V.C.2)` are available in the `capping` directory.
 * `Scalability` experiments presented on section `V.D.` are available in the `scale` directory.
 
-You can either chose to use provided JSON files for each experiment or to generate them by yourself using the corresponding java test classes, the procedure is described below.
+You can either chose to use provided JSON files for each experiment or to generate them by yourself using the corresponding java test classes (the procedure is described below).
 
 ## Setup the environment
 
@@ -40,7 +40,7 @@ We used both `Griffon` and `Graphene` clusters from the Nancy site ([network](ht
 
 ### Create a custom image for g5k nodes
 
-Start from a g5k debian release, you can obtain the list of available images from cmdline `kaenv3 -l`, for example select: `wheezy-x64-base`. Then reserve a node and deploy the image, there are a great documentation for that on the [Grid'5000 wiki](https://www.grid5000.fr/mediawiki/index.php/Getting_Started).
+Start from a g5k debian release, you can obtain the list of available images from cmdline `kaenv3 -l`, for example select: `wheezy-x64-base`. Then reserve a node and deploy the image, there are great documentations for that on the [Grid'5000 wiki](https://www.grid5000.fr/mediawiki/index.php/Getting_Started).
 
 Once deployed, modify the `/etc/rc.local` file like [this one](https://github.com/btrplace/migrations-UCC-15/blob/master/images/node/rc.local) , then put [this custom init script](https://github.com/btrplace/migrations-UCC-15/blob/master/images/node/init_once) in `/etc/` 
 
