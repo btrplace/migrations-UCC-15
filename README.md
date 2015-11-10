@@ -134,6 +134,10 @@ The scenarios JSON files for each experiments can be directly retrieved [here](h
 
 Altenatively, you can regenerate them from this repository. Just do the following:
 
+Requirements:
+* JDK 8+
+* maven 3+
+
 ``` shell
 # Get and compile the UCC'15 version of the BtrPlace scheduler
 git clone -b ucc-15 --single-branch --depth 1 https://github.com/btrplace/scheduler-devs.git
@@ -149,7 +153,11 @@ MAVEN_OPTS="-Xmx2G -Xms2G" mvn compiler:testCompile surefire:test
 
 ### Get the BtrPlace plan executor for g5k
 
-Retrieve it from [this repository](https://github.com/btrplace/g5k-executor) and compile it:
+Requirements:
+* JDK 8+
+* maven 3+
+
+Retrieve the executor from [this repository](https://github.com/btrplace/g5k-executor) and compile it:
 
 ``` shell
 git clone -b ucc-15 https://github.com/btrplace/g5k-executor.git
@@ -180,7 +188,7 @@ g5kExecutor [-d scripts_dir] (-mvm|-buddies -p <x>) -i <json_file> -o <output_fi
  -o (--output-csv) VAL                 : Print actions durations to this file
 ```
 
-Finally, you'll just need to edit the migration script `src/main/bin/scripts/migrate.sh` and modify the variable `VM_BASE_IMG` to match your custom VM image location.
+Finally, you'll just need to edit the migration script `g5k-1.0-SNAPSHOT/scripts/migrate.sh` and modify the variable `VM_BASE_IMG` to match your custom VM image location.
 
 ### Prepare the scenario execution
 
@@ -219,6 +227,5 @@ Each experiment must be started **from the controler node**, there are some usag
 ./g5kExecutor -buddies -p 3 -f -i <JSON_FILE> -o <OUTPUT_CSV>
 ```
 
-...
 
-The `<OUTPUT_CSV>` file contains 3 fields: `ACTION;START;END` where `ACTION` represents the BtrPlace String representation of the action, `START` and `END` correspond respectively to the start and end time of the action in the form of timestamps.
+The `<OUTPUT_CSV>` file contains 3 fields: `ACTION;START;END` where `ACTION` corresponds the BtrPlace String representation of the action, `START` and `END` correspond respectively to the start and end time of the action in the form of timestamps.
