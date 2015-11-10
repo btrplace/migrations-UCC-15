@@ -184,7 +184,7 @@ Finally, you'll just need to edit the migration script `src/main/bin/scripts/mig
 
 ### Prepare the scenario execution
 
-The `translate` file must be modified to allow to translate VMs and g5k nodes names into the BtrPlace internal VMs and nodes names:
+The `g5k-1.0-SNAPSHOT/scripts/translate` file must be modified to allow to translate VMs and g5k nodes names into the BtrPlace internal VMs and nodes names, like this:
 
 ``` txt
 vm-1 vm#0
@@ -221,3 +221,4 @@ The scenario must be started from the controler node, there are some usage examp
 
 ...
 
+The `<OUTPUT_CSV>` file contains 3 fields: `ACTION;START;END` where `ACTION` represents the BtrPlace 'String form' of the action, `START` and `END` correspond respectively to the start and end time of the action in the form of timestamps.
