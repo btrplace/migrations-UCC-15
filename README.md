@@ -163,7 +163,7 @@ The following script will take care about everything:
 
 The scenarios JSON files for each experiments can be directly retrieved [here](https://github.com/btrplace/migrations-UCC-15/tree/master/src/test/java/org/btrplace/scheduler/ucc15).
 
-Altenatively, you can regenerate them from this repository. Just do the following:
+Altenatively, you can regenerate them from this current git repository, just do the following:
 
 Requirements:
 * JDK 8+
@@ -219,9 +219,9 @@ g5kExecutor [-d scripts_dir] (-mvm|-buddies -p <x>) -i <json_file> -o <output_fi
  -o (--output-csv) VAL                 : Print actions durations to this file
 ```
 
-Finally, you'll just need to edit the migration script `g5k-1.0-SNAPSHOT/scripts/migrate.sh` and modify the variable `VM_BASE_IMG` to match your custom VM image location.
-
 ### Prepare the scenario execution
+
+First, you'll just need to edit the migration script `g5k-1.0-SNAPSHOT/scripts/migrate.sh` and modify the variable `VM_BASE_IMG` to match your custom VM image location.
 
 The `g5k-1.0-SNAPSHOT/scripts/translate` file must be modified to allow to translate VMs and g5k nodes names into the BtrPlace internal VMs and nodes names, like this:
 
@@ -234,11 +234,11 @@ griffon-61 node#1
 ...
 ```
 
-Start trafic shaping if necessary by executing the script `trafic_shaping.sh` on desired nodes, it can be retrieved [here](https://github.com/btrplace/migrations-UCC-15/blob/master/scripts).
+**Note**: Start trafic shaping if necessary by executing the script `trafic_shaping.sh` on desired nodes, it can be retrieved [here](https://github.com/btrplace/migrations-UCC-15/blob/master/scripts).
 
 ### Start the reconfiguration plan execution:
 
-Each experiment must be started **from the controler node**, there are some usage examples:
+Each experiment must be started **from the controler node**, here are some usage examples:
 
 **mVM**:
 
