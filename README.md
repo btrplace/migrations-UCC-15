@@ -5,11 +5,11 @@ This repository aims to provide a basis for reproducible migrations experiments 
 ## Setup the environment
 
 All the experiments have been executed on the [Grid'5000 infrastructure](https://www.grid5000.fr/mediawiki/index.php/Grid5000:Home), so you must have an account in order to reproduce the experiments.
-Wze used both `Griffon` and `Graphene` clusters from the Nancy site ([network](https://www.grid5000.fr/mediawiki/index.php/Nancy:Network) / [hardware](https://www.grid5000.fr/mediawiki/index.php/Nancy:Hardware).
+We used both `Griffon` and `Graphene` clusters from the Nancy site ([network](https://www.grid5000.fr/mediawiki/index.php/Nancy:Network) / [hardware](https://www.grid5000.fr/mediawiki/index.php/Nancy:Hardware)).
 
 ### Create a custom image for g5k nodes
 
-Start from a g5k debian release: `kaenv3 -l`, for example select: `wheezy-x64-base`.
+Start from a grid'5000 debian release, you can obtain the list of available images from cmdline `kaenv3 -l`, for example select: `wheezy-x64-base`. Then reserve a node and deploy the image, there are a great documentation for that on the [Grid'5000 wiki](https://www.grid5000.fr/mediawiki/index.php/Getting_Started).
 
 Once deployed, modify the `/etc/rc.local` file like [this one](https://github.com/btrplace/migrations-UCC-15/blob/master/images/node/rc.local) , then put [this custom init script](https://github.com/btrplace/migrations-UCC-15/blob/master/images/node/init_once) in `/etc/` 
 
@@ -54,7 +54,7 @@ Finally register your new image by following the few steps described [here] (htt
 The VM image used for the experiments was an Ubuntu 14.10 desktop distribution (RAW img format), the VM configuration (network, ssh, ...) will be automatically done from the environment deployment scripts described later.
 Thus you just have to provide a RAW .img file of the operating system you want.
 
-## Deploy
+## Deploy the environment
 
 ### Reserve nodes
 
@@ -123,8 +123,8 @@ The following script will take care about everything:
 /bin/bash configure_envionment.sh
 ```
 
-* Configure all nodes (Infiniband, 
-* Start VM and wait for boot
+* Configure all nodes (Infiniband, NFS share, BMC, ..).
+* Start all VMs on hosting nodes and wait until they are booted.
 
 ## Launch the experimentations
 
@@ -157,7 +157,7 @@ cd g5k-executor
 mvn -Dmaven.test.skip=true package
 ```
 
-A distribution tarball is generated into the `target` folder, you can start to use the executor for example to check the cmdline options :
+A distribution tarball is generated into the `target` folder, you can now extract and start to use the executor. For example execute it as is to show the cmdline options:
 
 ``` shell
 cd target
@@ -199,21 +199,21 @@ Start trafic shaping if necessary by executing the script `trafic_shaping.sh` on
 
 ### Start the reconfiguration plan execution:
 
-The scenario must be started from the controler node, there are some usage examples:
+Each experiment must be started **from the controler node**, there are some usage examples:
 
-**mVM:**
+**mVM**:
 
 ``` shell
 ./g5kExecutor --mvm-scheduler --input-json <JSON_FILE> --output-csv <OUTPUT_CSV>
 ```
 
-**MB-2:**
+**MB-2**:
 
 ``` shell
 ./g5kExecutor --memory-buddies-scheduler --parallelism 2 --fixed-order -i <JSON_FILE> -o <OUTPUT_CSV>
 ```
 
-**MB-3:**
+**MB-3**:
 
 ``` shell
 ./g5kExecutor -buddies -p 3 -f -i <JSON_FILE> -o <OUTPUT_CSV>
@@ -221,4 +221,4 @@ The scenario must be started from the controler node, there are some usage examp
 
 ...
 
-The `<OUTPUT_CSV>` file contains 3 fields: `ACTION;START;END` where `ACTION` represents the BtrPlace 'String form' of the action, `START` and `END` correspond respectively to the start and end time of the action in the form of timestamps.
+The `<OUTPUT_CSV>` file contains 3 fields: `ACTION;START;END` where `ACTION` represents the BtrPlace String representation of the action, `START` and `END` correspond respectively to the start and end time of the action in the form of timestamps.
