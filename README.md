@@ -31,7 +31,7 @@ src
 * `Power capping` experiments presented on section `V.C.2)` are available in the `capping` directory.
 * `Scalability` experiments presented on section `V.D.` are available in the `scale` directory.
 
-You can either chose to use the provided JSON files to execute each experiment or to generate them by yourself using the corresponding java test classes (procedure described below).
+You can either chose to use the provided JSON files to execute the experiments or to generate them by yourself using the corresponding java test classes (procedure described below).
 
 ## Setup the environment
 
@@ -207,8 +207,8 @@ Requirements:
 First, retrieve and compile the UCC'15 version of the BtrPlace scheduler:
 
 ``` shell
-git clone --depth 1 https://github.com/btrplace/scheduler-ucc-15.git
-cd scheduler-ucc-15
+git clone --depth 1 https://github.com/btrplace/scheduler-UCC-15.git
+cd scheduler-UCC-15
 mvn -Dmaven.test.skip=true install
 cd ../
 ```
