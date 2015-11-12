@@ -20,20 +20,13 @@ fi
 #############################################################
 # Load kvm kernel modules :
 modprobe kvm
-if [ $(cat /proc/cpuinfo | grep Intel | wc -l) -gt 0 ]; then
-    modprobe kvm_intel
-else
-    modprobe kvm_amd
-fi
+[ $(cat /proc/cpuinfo | grep Intel | wc -l) -gt 0 ] &&  modprobe kvm_intel || modprobe kvm_amd
 
 # Load nbd driver for qemu utils
 modprobe nbd max_part=4
 
 # Launch a custom script and remove it once done
-if [ -f /etc/init_once ]; then
-        /etc/init_once
-        rm /etc/init_once
-fi
+[ -f /etc/init_once ] &&  /etc/init_once && rm /etc/init_once
 #############################################################
 
 exit 0
