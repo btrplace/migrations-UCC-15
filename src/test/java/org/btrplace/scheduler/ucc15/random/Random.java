@@ -6,14 +6,15 @@ import org.btrplace.json.plan.ReconfigurationPlanConverter;
 import org.btrplace.model.*;
 import org.btrplace.model.constraint.Fence;
 import org.btrplace.model.constraint.SatConstraint;
-import org.btrplace.model.constraint.migration.MinMTTRMig;
 import org.btrplace.model.view.ShareableResource;
-import org.btrplace.model.view.network.Network;
-import org.btrplace.model.view.network.Switch;
+import org.btrplace.model.view.net.MinMTTRObjective;
+import org.btrplace.model.view.net.NetworkView;
+import org.btrplace.model.view.net.Switch;
 import org.btrplace.plan.ReconfigurationPlan;
 import org.btrplace.scheduler.choco.DefaultChocoScheduler;
 import org.btrplace.scheduler.choco.DefaultParameters;
-import org.btrplace.scheduler.choco.transition.MigrateVMTransition;
+import org.btrplace.scheduler.choco.view.net.CMinMTTRObjective;
+import org.btrplace.scheduler.choco.view.net.MigrateVMTransition;
 import org.testng.Assert;
 import org.testng.annotations.Test;
 
@@ -120,10 +121,10 @@ public class Random {
         }
 
         // Create a NetworkView view AND connect half of the nodes to a 500Mb/s link
-        Network net = new Network(); Switch swMain = net.newSwitch();
+        NetworkView net = new NetworkView(); Switch swMain = net.newSwitch();
         //Collections.shuffle(nodes);
-        for (int i=0; i<nbNodes/2; i++) { net.connect(500, swMain, nodes.get(i)); }
-        for (int i=nbNodes/2; i<nbNodes; i++) { net.connect(1000, swMain, nodes.get(i)); }
+        for (int i=0; i<nbNodes/2; i++) { swMain.connect(500, nodes.get(i)); }
+        for (int i=nbNodes/2; i<nbNodes; i++) { swMain.connect(1000, nodes.get(i)); }
         mo.attach(net);
         //net.generateDot(path + "topology.dot", false);
 
@@ -136,10 +137,12 @@ public class Random {
         // Set the custom migration transition
         ps.getTransitionFactory().remove(ps.getTransitionFactory().getBuilder(VMState.RUNNING, VMState.RUNNING));
         ps.getTransitionFactory().add(new MigrateVMTransition.Builder());
+        // Register the custom objective
+        ps.getConstraintMapper().register(new CMinMTTRObjective.Builder());
 
         // Set a custom objective
         DefaultChocoScheduler sc = new DefaultChocoScheduler(ps);
-        Instance i = new Instance(mo, cstrs, new MinMTTRMig());
+        Instance i = new Instance(mo, cstrs, new MinMTTRObjective());
 
         ReconfigurationPlan p;
         try {

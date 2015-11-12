@@ -4,24 +4,22 @@ import org.btrplace.model.*;
 import org.btrplace.model.constraint.Fence;
 import org.btrplace.model.constraint.Offline;
 import org.btrplace.model.constraint.SatConstraint;
-import org.btrplace.model.constraint.migration.MinMTTRMig;
 import org.btrplace.model.view.ShareableResource;
-import org.btrplace.model.view.network.Network;
-import org.btrplace.model.view.network.Switch;
+import org.btrplace.model.view.net.MinMTTRObjective;
+import org.btrplace.model.view.net.NetworkView;
+import org.btrplace.model.view.net.Switch;
 import org.btrplace.plan.ReconfigurationPlan;
 import org.btrplace.scheduler.SchedulerException;
 import org.btrplace.scheduler.choco.DefaultChocoScheduler;
 import org.btrplace.scheduler.choco.DefaultParameters;
-import org.btrplace.scheduler.choco.constraint.energy.CMinEnergyObjective;
-import org.btrplace.scheduler.choco.constraint.energy.CPowerBudget;
 import org.btrplace.scheduler.choco.runner.SolutionStatistics;
 import org.btrplace.scheduler.choco.runner.SolvingStatistics;
-import org.btrplace.scheduler.choco.transition.MigrateVMTransition;
+import org.btrplace.scheduler.choco.view.net.CMinMTTRObjective;
+import org.btrplace.scheduler.choco.view.net.MigrateVMTransition;
 import org.chocosolver.solver.exception.ContradictionException;
 import org.testng.Assert;
 import org.testng.annotations.Test;
 
-import java.io.File;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
@@ -31,8 +29,30 @@ import java.util.List;
  */
 public class mVM {
 
-    String path = new File("").getAbsolutePath() +
-            "/src/test/java/org/btrplace/scheduler/ucc15/scale/";
+    @Test
+    public void go() throws Exception {
+        StringBuilder res = new StringBuilder("SIZE;DURATION\n");
+        int nb = 10;
+        /*for (int i = 0; i < nb; i++) {
+            res.append("x1;" + duration(decommissioning_10gb()) + ";mVM\n");
+        }
+        for (int i = 0; i < nb; i++) {
+            res.append("x2;" + duration(decommissioning_20gb()) + ";mVM\n");
+        }
+        for (int i = 0; i < nb; i++) {
+            res.append("x4;" + duration(decommissioning_40gb()) + ";mVM\n");
+        }*/
+        for (int i = 0; i < nb; i++) {
+            res.append("x10;" + duration(decommissioning_100gb()) + ";mVM\n");
+        }
+        System.out.println(res);
+    }
+
+    public double duration(SolvingStatistics s) {
+        SolutionStatistics x= s.getSolutions().get(0);
+        System.out.println(s);
+        return x.getTime() + s.getCoreRPBuildDuration() + s.getSpeRPDuration();
+    }
 
     public SolvingStatistics decommissioning_10gb() throws SchedulerException,ContradictionException {
 
@@ -109,28 +129,29 @@ public class mVM {
         mo.attach(rcCPU);
 
         // Add a NetworkView view
-        Network net = new Network();
+        NetworkView net = new NetworkView();
         Switch swSrcRack1 = net.newSwitch();
         Switch swSrcRack2 = net.newSwitch();
         Switch swDstRack1 = net.newSwitch();
         Switch swMain = net.newSwitch();
-        net.connect(1000, swSrcRack1, srcNodes.subList(0,nbNodesRack));
-        net.connect(1000, swSrcRack2, srcNodes.subList(nbNodesRack,nbNodesRack*2));
-        net.connect(1000, swDstRack1, dstNodes.subList(0,nbNodesRack));
-        net.connect(10000, swMain, swSrcRack1, swSrcRack2, swDstRack1);
+        swSrcRack1.connect(1000, srcNodes.subList(0,nbNodesRack));
+        swSrcRack2.connect(1000, srcNodes.subList(nbNodesRack,nbNodesRack*2));
+        swDstRack1.connect(1000, dstNodes.subList(0,nbNodesRack));
+        swMain.connect(10000, swSrcRack1, swSrcRack2, swDstRack1);
         mo.attach(net);
         //net.generateDot(path + "topology.dot", false);
 
         // Set parameters
         DefaultParameters ps = new DefaultParameters();
         ps.setVerbosity(0);
-        ps.setTimeLimit(10);
-        //ps.setMaxEnd(600);
+        ps.setTimeLimit(60);
         ps.doOptimize(false);
 
         // Set the custom migration transition
         ps.getTransitionFactory().remove(ps.getTransitionFactory().getBuilder(VMState.RUNNING, VMState.RUNNING));
         ps.getTransitionFactory().add(new MigrateVMTransition.Builder());
+        // Register custom objectives
+        ps.getConstraintMapper().register(new CMinMTTRObjective.Builder());
 
         // Migrate all VMs to destination nodes
         List<SatConstraint> cstrs = new ArrayList<>();
@@ -148,7 +169,7 @@ public class mVM {
 
         // Set a custom objective
         DefaultChocoScheduler sc = new DefaultChocoScheduler(ps);
-        Instance i = new Instance(mo, cstrs, new MinMTTRMig());
+        Instance i = new Instance(mo, cstrs, new MinMTTRObjective());
 
         ReconfigurationPlan p;
         try {
@@ -234,7 +255,7 @@ public class mVM {
         mo.attach(rcCPU);
 
         // Add a NetworkView view
-        Network net = new Network();
+        NetworkView net = new NetworkView();
         Switch swSrcRack1 = net.newSwitch();
         Switch swSrcRack2 = net.newSwitch();
         Switch swSrcRack3 = net.newSwitch();
@@ -242,31 +263,27 @@ public class mVM {
         Switch swDstRack1 = net.newSwitch();
         Switch swDstRack2 = net.newSwitch();
         Switch swMain = net.newSwitch();
-
-        net.connect(1000, swSrcRack1, srcNodes.subList(0,nbNodesRack));
-        net.connect(1000, swSrcRack2, srcNodes.subList(nbNodesRack,nbNodesRack*2));
-        net.connect(1000, swSrcRack3, srcNodes.subList(nbNodesRack*2,nbNodesRack*3));
-        net.connect(1000, swSrcRack4, srcNodes.subList(nbNodesRack*3,nbNodesRack*4));
-        net.connect(1000, swDstRack1, dstNodes.subList(0,nbNodesRack));
-        net.connect(1000, swDstRack2, dstNodes.subList(nbNodesRack,nbNodesRack*2));
-        net.connect(20000, swMain, swSrcRack1, swSrcRack2, swSrcRack3, swSrcRack4, swDstRack1, swDstRack2);
+        swSrcRack1.connect(1000, srcNodes.subList(0,nbNodesRack));
+        swSrcRack2.connect(1000, srcNodes.subList(nbNodesRack,nbNodesRack*2));
+        swSrcRack3.connect(1000, srcNodes.subList(nbNodesRack*2,nbNodesRack*3));
+        swSrcRack4.connect(1000, srcNodes.subList(nbNodesRack*3,nbNodesRack*4));
+        swDstRack1.connect(1000, dstNodes.subList(0,nbNodesRack));
+        swDstRack2.connect(1000, dstNodes.subList(nbNodesRack,nbNodesRack*2));
+        swMain.connect(20000, swSrcRack1, swSrcRack2, swSrcRack3, swSrcRack4, swDstRack1, swDstRack2);
         mo.attach(net);
         //net.generateDot(path + "topology.dot", false);
 
         // Set parameters
         DefaultParameters ps = new DefaultParameters();
         ps.setVerbosity(0);
-        ps.setTimeLimit(10);
-        //ps.setMaxEnd(600);
+        ps.setTimeLimit(60);
         ps.doOptimize(false);
 
         // Set the custom migration transition
         ps.getTransitionFactory().remove(ps.getTransitionFactory().getBuilder(VMState.RUNNING, VMState.RUNNING));
         ps.getTransitionFactory().add(new MigrateVMTransition.Builder());
         // Register custom objectives
-        ps.getConstraintMapper().register(new CMinEnergyObjective.Builder());
-        // Register new constraints
-        ps.getConstraintMapper().register(new CPowerBudget.Builder());
+        ps.getConstraintMapper().register(new CMinMTTRObjective.Builder());
 
         // Migrate all VMs to destination nodes
         List<SatConstraint> cstrs = new ArrayList<>();
@@ -284,7 +301,8 @@ public class mVM {
 
         // Set a custom objective
         DefaultChocoScheduler sc = new DefaultChocoScheduler(ps);
-        Instance i = new Instance(mo, cstrs, new MinMTTRMig());
+        Instance i = new Instance(mo, cstrs, new MinMTTRObjective());
+
 
         ReconfigurationPlan p;
         try {
@@ -370,7 +388,7 @@ public class mVM {
         mo.attach(rcCPU);
 
         // Add a NetworkView view
-        Network net = new Network();
+        NetworkView net = new NetworkView();
         Switch swSrcRack1 = net.newSwitch();
         Switch swSrcRack2 = net.newSwitch();
         Switch swSrcRack3 = net.newSwitch();
@@ -384,20 +402,19 @@ public class mVM {
         Switch swDstRack3 = net.newSwitch();
         Switch swDstRack4 = net.newSwitch();
         Switch swMain = net.newSwitch();
-
-        net.connect(1000, swSrcRack1, srcNodes.subList(0,nbNodesRack));
-        net.connect(1000, swSrcRack2, srcNodes.subList(nbNodesRack,nbNodesRack*2));
-        net.connect(1000, swSrcRack3, srcNodes.subList(nbNodesRack*2,nbNodesRack*3));
-        net.connect(1000, swSrcRack4, srcNodes.subList(nbNodesRack*3,nbNodesRack*4));
-        net.connect(1000, swSrcRack5, srcNodes.subList(nbNodesRack*4,nbNodesRack*5));
-        net.connect(1000, swSrcRack6, srcNodes.subList(nbNodesRack*5,nbNodesRack*6));
-        net.connect(1000, swSrcRack7, srcNodes.subList(nbNodesRack*6,nbNodesRack*7));
-        net.connect(1000, swSrcRack8, srcNodes.subList(nbNodesRack*7,nbNodesRack*8));
-        net.connect(1000, swDstRack1, dstNodes.subList(0,nbNodesRack));
-        net.connect(1000, swDstRack2, dstNodes.subList(nbNodesRack,nbNodesRack*2));
-        net.connect(1000, swDstRack3, dstNodes.subList(nbNodesRack*2,nbNodesRack*3));
-        net.connect(1000, swDstRack4, dstNodes.subList(nbNodesRack*3,nbNodesRack*4));
-        net.connect(40000, swMain, swSrcRack1, swSrcRack2, swSrcRack3, swSrcRack4, swSrcRack5, swSrcRack6, swSrcRack7, swSrcRack8,
+        swSrcRack1.connect(1000, srcNodes.subList(0,nbNodesRack));
+        swSrcRack2.connect(1000, srcNodes.subList(nbNodesRack,nbNodesRack*2));
+        swSrcRack3.connect(1000, srcNodes.subList(nbNodesRack*2,nbNodesRack*3));
+        swSrcRack4.connect(1000, srcNodes.subList(nbNodesRack*3,nbNodesRack*4));
+        swSrcRack5.connect(1000, srcNodes.subList(nbNodesRack*4,nbNodesRack*5));
+        swSrcRack6.connect(1000, srcNodes.subList(nbNodesRack*5,nbNodesRack*6));
+        swSrcRack7.connect(1000, srcNodes.subList(nbNodesRack*6,nbNodesRack*7));
+        swSrcRack8.connect(1000, srcNodes.subList(nbNodesRack*7,nbNodesRack*8));
+        swDstRack1.connect(1000, dstNodes.subList(0,nbNodesRack));
+        swDstRack2.connect(1000, dstNodes.subList(nbNodesRack,nbNodesRack*2));
+        swDstRack3.connect(1000, dstNodes.subList(nbNodesRack*2,nbNodesRack*3));
+        swDstRack4.connect(1000, dstNodes.subList(nbNodesRack*3,nbNodesRack*4));
+        swMain.connect(40000, swSrcRack1, swSrcRack2, swSrcRack3, swSrcRack4, swSrcRack5, swSrcRack6, swSrcRack7, swSrcRack8,
                 swDstRack1, swDstRack2, swDstRack3, swDstRack4);
         mo.attach(net);
         //net.generateDot(path + "topology.dot", false);
@@ -406,12 +423,13 @@ public class mVM {
         DefaultParameters ps = new DefaultParameters();
         ps.setVerbosity(0);
         ps.setTimeLimit(60);
-        //ps.setMaxEnd(600);
         ps.doOptimize(false);
 
         // Set the custom migration transition
         ps.getTransitionFactory().remove(ps.getTransitionFactory().getBuilder(VMState.RUNNING, VMState.RUNNING));
         ps.getTransitionFactory().add(new MigrateVMTransition.Builder());
+        // Register custom objectives
+        ps.getConstraintMapper().register(new CMinMTTRObjective.Builder());
 
         // Migrate all VMs to destination nodes
         List<SatConstraint> cstrs = new ArrayList<>();
@@ -429,7 +447,7 @@ public class mVM {
 
         // Set a custom objective
         DefaultChocoScheduler sc = new DefaultChocoScheduler(ps);
-        Instance i = new Instance(mo, cstrs, new MinMTTRMig());
+        Instance i = new Instance(mo, cstrs, new MinMTTRObjective());
 
         ReconfigurationPlan p;
         try {
@@ -515,7 +533,7 @@ public class mVM {
         mo.attach(rcCPU);
 
         // Add a NetworkView view
-        Network net = new Network();
+        NetworkView net = new NetworkView();
         Switch swSrcRack1 = net.newSwitch();
         Switch swSrcRack2 = net.newSwitch();
         Switch swSrcRack3 = net.newSwitch();
@@ -547,38 +565,37 @@ public class mVM {
         Switch swDstRack9 = net.newSwitch();
         Switch swDstRack10 = net.newSwitch();
         Switch swMain = net.newSwitch();
-
-        net.connect(1000, swSrcRack1, srcNodes.subList(0,nbNodesRack));
-        net.connect(1000, swSrcRack2, srcNodes.subList(nbNodesRack,nbNodesRack*2));
-        net.connect(1000, swSrcRack3, srcNodes.subList(nbNodesRack*2,nbNodesRack*3));
-        net.connect(1000, swSrcRack4, srcNodes.subList(nbNodesRack*3,nbNodesRack*4));
-        net.connect(1000, swSrcRack5, srcNodes.subList(nbNodesRack*4,nbNodesRack*5));
-        net.connect(1000, swSrcRack6, srcNodes.subList(nbNodesRack*5,nbNodesRack*6));
-        net.connect(1000, swSrcRack7, srcNodes.subList(nbNodesRack*6,nbNodesRack*7));
-        net.connect(1000, swSrcRack8, srcNodes.subList(nbNodesRack*7,nbNodesRack*8));
-        net.connect(1000, swSrcRack9, srcNodes.subList(nbNodesRack*8,nbNodesRack*9));
-        net.connect(1000, swSrcRack10, srcNodes.subList(nbNodesRack*9,nbNodesRack*10));
-        net.connect(1000, swSrcRack11, srcNodes.subList(nbNodesRack*10,nbNodesRack*11));
-        net.connect(1000, swSrcRack12, srcNodes.subList(nbNodesRack*11,nbNodesRack*12));
-        net.connect(1000, swSrcRack13, srcNodes.subList(nbNodesRack*12,nbNodesRack*13));
-        net.connect(1000, swSrcRack14, srcNodes.subList(nbNodesRack*13,nbNodesRack*14));
-        net.connect(1000, swSrcRack15, srcNodes.subList(nbNodesRack*14,nbNodesRack*15));
-        net.connect(1000, swSrcRack16, srcNodes.subList(nbNodesRack*15,nbNodesRack*16));
-        net.connect(1000, swSrcRack17, srcNodes.subList(nbNodesRack*16,nbNodesRack*17));
-        net.connect(1000, swSrcRack18, srcNodes.subList(nbNodesRack*17,nbNodesRack*18));
-        net.connect(1000, swSrcRack19, srcNodes.subList(nbNodesRack*18,nbNodesRack*19));
-        net.connect(1000, swSrcRack20, srcNodes.subList(nbNodesRack*19,nbNodesRack*20));
-        net.connect(1000, swDstRack1, dstNodes.subList(0,nbNodesRack));
-        net.connect(1000, swDstRack2, dstNodes.subList(nbNodesRack,nbNodesRack*2));
-        net.connect(1000, swDstRack3, dstNodes.subList(nbNodesRack*2,nbNodesRack*3));
-        net.connect(1000, swDstRack4, dstNodes.subList(nbNodesRack*3,nbNodesRack*4));
-        net.connect(1000, swDstRack5, dstNodes.subList(nbNodesRack*4,nbNodesRack*5));
-        net.connect(1000, swDstRack6, dstNodes.subList(nbNodesRack*5,nbNodesRack*6));
-        net.connect(1000, swDstRack7, dstNodes.subList(nbNodesRack*6,nbNodesRack*7));
-        net.connect(1000, swDstRack8, dstNodes.subList(nbNodesRack*7,nbNodesRack*8));
-        net.connect(1000, swDstRack9, dstNodes.subList(nbNodesRack*8,nbNodesRack*9));
-        net.connect(1000, swDstRack10, dstNodes.subList(nbNodesRack*9,nbNodesRack*10));
-        net.connect(100000, swMain,
+        swSrcRack1.connect(1000, srcNodes.subList(0,nbNodesRack));
+        swSrcRack2.connect(1000, srcNodes.subList(nbNodesRack,nbNodesRack*2));
+        swSrcRack3.connect(1000, srcNodes.subList(nbNodesRack*2,nbNodesRack*3));
+        swSrcRack4.connect(1000, srcNodes.subList(nbNodesRack*3,nbNodesRack*4));
+        swSrcRack5.connect(1000, srcNodes.subList(nbNodesRack*4,nbNodesRack*5));
+        swSrcRack6.connect(1000, srcNodes.subList(nbNodesRack*5,nbNodesRack*6));
+        swSrcRack7.connect(1000, srcNodes.subList(nbNodesRack*6,nbNodesRack*7));
+        swSrcRack8.connect(1000, srcNodes.subList(nbNodesRack*7,nbNodesRack*8));
+        swSrcRack9.connect(1000, srcNodes.subList(nbNodesRack*8,nbNodesRack*9));
+        swSrcRack10.connect(1000, srcNodes.subList(nbNodesRack*9,nbNodesRack*10));
+        swSrcRack11.connect(1000, srcNodes.subList(nbNodesRack*10,nbNodesRack*11));
+        swSrcRack12.connect(1000, srcNodes.subList(nbNodesRack*11,nbNodesRack*12));
+        swSrcRack13.connect(1000, srcNodes.subList(nbNodesRack*12,nbNodesRack*13));
+        swSrcRack14.connect(1000, srcNodes.subList(nbNodesRack*13,nbNodesRack*14));
+        swSrcRack15.connect(1000, srcNodes.subList(nbNodesRack*14,nbNodesRack*15));
+        swSrcRack16.connect(1000, srcNodes.subList(nbNodesRack*15,nbNodesRack*16));
+        swSrcRack17.connect(1000, srcNodes.subList(nbNodesRack*16,nbNodesRack*17));
+        swSrcRack18.connect(1000, srcNodes.subList(nbNodesRack*17,nbNodesRack*18));
+        swSrcRack19.connect(1000, srcNodes.subList(nbNodesRack*18,nbNodesRack*19));
+        swSrcRack20.connect(1000, srcNodes.subList(nbNodesRack*19,nbNodesRack*20));
+        swDstRack1.connect(1000, dstNodes.subList(0,nbNodesRack));
+        swDstRack2.connect(1000, dstNodes.subList(nbNodesRack,nbNodesRack*2));
+        swDstRack3.connect(1000, dstNodes.subList(nbNodesRack*2,nbNodesRack*3));
+        swDstRack4.connect(1000, dstNodes.subList(nbNodesRack*3,nbNodesRack*4));
+        swDstRack5.connect(1000, dstNodes.subList(nbNodesRack*4,nbNodesRack*5));
+        swDstRack6.connect(1000, dstNodes.subList(nbNodesRack*5,nbNodesRack*6));
+        swDstRack7.connect(1000, dstNodes.subList(nbNodesRack*6,nbNodesRack*7));
+        swDstRack8.connect(1000, dstNodes.subList(nbNodesRack*7,nbNodesRack*8));
+        swDstRack9.connect(1000, dstNodes.subList(nbNodesRack*8,nbNodesRack*9));
+        swDstRack10.connect(1000, dstNodes.subList(nbNodesRack*9,nbNodesRack*10));
+        swMain.connect(100000,
                 swSrcRack1, swSrcRack2, swSrcRack3, swSrcRack4, swSrcRack5, swSrcRack6, swSrcRack7, swSrcRack8,
                 swSrcRack9, swSrcRack10, swSrcRack11, swSrcRack12, swSrcRack13, swSrcRack14, swSrcRack15, swSrcRack16,
                 swSrcRack17, swSrcRack8, swSrcRack19, swSrcRack20,
@@ -591,13 +608,14 @@ public class mVM {
         // Set parameters
         DefaultParameters ps = new DefaultParameters();
         ps.setVerbosity(0);
-        ps.setTimeLimit(60);
-        //ps.setMaxEnd(600);
+        ps.setTimeLimit(0);
         ps.doOptimize(false);
 
         // Set the custom migration transition
         ps.getTransitionFactory().remove(ps.getTransitionFactory().getBuilder(VMState.RUNNING, VMState.RUNNING));
         ps.getTransitionFactory().add(new MigrateVMTransition.Builder());
+        // Register custom objectives
+        ps.getConstraintMapper().register(new CMinMTTRObjective.Builder());
 
         // Migrate all VMs to destination nodes
         List<SatConstraint> cstrs = new ArrayList<>();
@@ -615,40 +633,18 @@ public class mVM {
 
         // Set a custom objective
         DefaultChocoScheduler sc = new DefaultChocoScheduler(ps);
-        Instance i = new Instance(mo, cstrs, new MinMTTRMig());
+        Instance i = new Instance(mo, cstrs, new MinMTTRObjective());
 
         ReconfigurationPlan p;
         try {
             p = sc.solve(i);
             Assert.assertNotNull(p);
-        } finally {
+        }
+        catch(Exception e) {
+            e.printStackTrace();
+        }
+        //finally {
             return sc.getStatistics();
-        }
-    }
-
-    @Test
-    public void go() throws Exception {
-        StringBuilder res = new StringBuilder("SIZE;DURATION\n");
-        int nb = 10;
-        for (int i = 0; i < nb; i++) {
-            res.append("10;" + duration(decommissioning_10gb()) + ";mVM\n");
-        }
-        for (int i = 0; i < nb; i++) {
-            res.append("20;" + duration(decommissioning_20gb()) + ";mVM\n");
-        }
-        for (int i = 0; i < nb; i++) {
-            res.append("40;" + duration(decommissioning_40gb()) + ";mVM\n");
-        }
-        for (int i = 0; i < nb; i++) {
-            res.append("100;" + duration(decommissioning_100gb()) + ";mVM\n");
-        }
-        System.err.println(res);
-        Assert.fail();
-    }
-
-    public double duration(SolvingStatistics s) {
-        SolutionStatistics x= s.getSolutions().get(0);
-        System.out.println(s);
-        return x.getTime() + s.getCoreRPBuildDuration() + s.getSpeRPDuration();
+        //}
     }
 }

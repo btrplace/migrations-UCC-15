@@ -8,10 +8,10 @@ import org.btrplace.model.constraint.Fence;
 import org.btrplace.model.constraint.MinMTTR;
 import org.btrplace.model.constraint.Offline;
 import org.btrplace.model.constraint.SatConstraint;
-import org.btrplace.model.view.EnergyView;
 import org.btrplace.model.view.ShareableResource;
-import org.btrplace.model.view.network.Network;
-import org.btrplace.model.view.network.Switch;
+import org.btrplace.model.view.net.NetworkView;
+import org.btrplace.model.view.net.Switch;
+import org.btrplace.model.view.power.EnergyView;
 import org.btrplace.plan.ReconfigurationPlan;
 import org.btrplace.scheduler.SchedulerException;
 import org.btrplace.scheduler.choco.DefaultChocoScheduler;
@@ -152,15 +152,15 @@ public class BtrPlace {
         mo.attach(energyView);
 
         // Add a NetworkView view
-        Network net = new Network();
+        NetworkView net = new NetworkView();
         Switch swSrcRack1 = net.newSwitch();
         Switch swSrcRack2 = net.newSwitch();
         Switch swDstRack1 = net.newSwitch();
         Switch swMain = net.newSwitch();
-        net.connect(1000, swSrcRack1, srcNodes.subList(0, nbNodesRack));
-        net.connect(1000, swSrcRack2, srcNodes.subList(nbNodesRack, nbNodesRack * 2));
-        net.connect(1000, swDstRack1, dstNodes.subList(0, nbNodesRack));
-        net.connect(10000, swMain, swSrcRack1, swSrcRack2, swDstRack1);
+        swSrcRack1.connect(1000, srcNodes.subList(0, nbNodesRack));
+        swSrcRack2.connect(1000, srcNodes.subList(nbNodesRack, nbNodesRack * 2));
+        swDstRack1.connect(1000, dstNodes.subList(0, nbNodesRack));
+        swMain.connect(10000, swSrcRack1, swSrcRack2, swDstRack1);
         mo.attach(net);
         //net.generateDot(path + "topology.dot", false);
 
