@@ -31,21 +31,58 @@ src
 * `Power capping` experiments presented on section `V.C.2)` are available in the `capping` directory.
 * `Scalability` experiments presented on section `V.D.` are available in the `scale` directory.
 
-You can either chose to use provided JSON files for each experiment or to generate them by yourself using the corresponding java test classes (the procedure is described below).
+You can either chose to use the provided JSON files to execute each experiment or to generate them by yourself using the corresponding java test classes (procedure described below).
 
 ## Setup the environment
 
 All the experiments have been executed on the [Grid'5000 infrastructure](https://www.grid5000.fr/mediawiki/index.php/Grid5000:Home) (g5k), so you must have an account in order to reproduce the experiments.
-We used both `Griffon` and `Graphene` clusters from the Nancy site ([network](https://www.grid5000.fr/mediawiki/index.php/Nancy:Network) / [hardware](https://www.grid5000.fr/mediawiki/index.php/Nancy:Hardware)).
+We used both `Griffon` and `Graphene` clusters from the Nancy site ([network](https://www.grid5000.fr/mediawiki/index.php/Nancy:Network)/[hardware](https://www.grid5000.fr/mediawiki/index.php/Nancy:Hardware)).
 
 ### Create a custom image for g5k nodes
 
-Start from a g5k debian release, you can obtain the list of available images from cmdline `kaenv3 -l`, for example select: `wheezy-x64-base`. Then reserve a node and deploy the image, there are great documentations for that on the [Grid'5000 wiki](https://www.grid5000.fr/mediawiki/index.php/Getting_Started).
+Start from a g5k debian release, you can obtain the list of available images from cmdline `kaenv3 -l`, for example select: `wheezy-x64-base`. Then reserve a node and deploy the desired image on it, there is a great documentation for that on the [Grid'5000 wiki](https://www.grid5000.fr/mediawiki/index.php/Getting_Started).
 
-Once deployed, modify the `/etc/rc.local` file like [this one](https://github.com/btrplace/migrations-UCC-15/blob/master/images/node/rc.local) , then put [this custom init script](https://github.com/btrplace/migrations-UCC-15/blob/master/images/node/init_once) in `/etc/` 
+Once deployed, edit the `/etc/rc.local` file and add the following at the bottom (before `exit 0`):
+
+``` shell
+# Load appropriate KVM kernel modules :
+modprobe kvm
+[ $(cat /proc/cpuinfo | grep Intel | wc -l) -gt 0 ] &&  modprobe kvm_intel || modprobe kvm_amd
+
+# Load nbd driver for qemu utils
+modprobe nbd max_part=4
+
+# Launch a custom script and remove it once done
+[ -f /etc/init_once ] &&  /etc/init_once && rm /etc/init_once
+```
+
+This will load the KVM kernel modules on boot and execute a custom script (`/etc/init_once`) on first boot.
+
+The script `/etc/init_once` will configure the network and generate a uniq libvirt uuid on first boot, make sure the file is executable after creating it:
+
+``` shell
+#!/bin/bash
+
+# Create a bridge br0 and attach eth0 to it
+virsh iface-bridge eth0 br0
+brctl stp br0 off # Disable spanning tree
+brctl setfd br0 0 # Set the forwarding delay to 0
+
+# Modify the routing
+NEW_ROUTE=$(echo `ip route | head -1` | sed 's/eth0/br0/g')
+ip route del `ip route | head -1`
+ip route del `ip route | head -1`
+ip route add $NEW_ROUTE
+
+# Generate a random UUID to differenciate libvirt hosts
+sed -i "s/#host_uuid = .*/host_uuid = \"`uuidgen`\"/g" /etc/libvirt/libvirtd.conf
+/etc/init.d/libvirt-bin restart
+
+exit 0
+```
 
 Finally, install and setup qemu and libvirt.
-If you want, a patched version of qemu allowing to retrieve VMs' dirty pages informations is available [here](https://github.com/btrplace/qemu-patch). Simply follow the informations on the [wiki page](https://github.com/btrplace/qemu-patch/wiki) to see how it works.
+A patched version of qemu that allows to retrieve VMs' dirty pages informations is available [here](https://github.com/btrplace/qemu-patch), simply follow the informations on the [wiki page](https://github.com/btrplace/qemu-patch/wiki) to see how it works.
 
 Then, modify the libvirt daemon config file (`/etc/libvirt/libvirtd.conf`) and set the following options:
 
@@ -63,7 +100,7 @@ max_client_requests = 50
 
 This allows to make direct TCP connections for the migrations instead of SSH or TLS (slower), and to effectively manage concurrent migrations from one or multiple clients.
 
-Also, make sure you have the following options set in the SSH client config file (`/etc/ssh/ssh_config`) to avoid any warnings due to connections on cloned servers having the same key:
+Then, make sure you have the following options set in the SSH client config file (`/etc/ssh/ssh_config`) to avoid any warnings due to connections on cloned servers having the same key:
 
 ``` txt
 HashKnownHosts no
@@ -72,7 +109,7 @@ UserKnownHostsFile /dev/null
 LogLevel quiet
 ```
 
-That's all, now you can save your new image using the [tgz-g5k tool](https://www.grid5000.fr/mediawiki/index.php/TGZ-G5K) for example:
+Be sure you configured SSH access from your account and that's all! you can now save your new image using the [tgz-g5k tool](https://www.grid5000.fr/mediawiki/index.php/TGZ-G5K), for example:
 
 ``` shell
 tgz-g5k > /tmp/custom_image.tgz
@@ -80,22 +117,24 @@ tgz-g5k > /tmp/custom_image.tgz
 
 Finally register your new image by following the few steps described [here] (https://www.grid5000.fr/mediawiki/index.php/Deploy_environment-OAR2#Describe_the_newly_created_environment_for_deployments).
 
+**Note**: All the modified configurations files and scripts described above are available [here](https://github.com/btrplace/migrations-UCC-15/tree/master/configs).
+
 ### Create a custom VM image
 
-The VM image used for the experiments was an Ubuntu 14.10 desktop distribution (RAW img format), the VM configuration (network, ssh, ...) will be automatically done from the environment deployment scripts described later.
-Thus you just have to provide a RAW .img file of the operating system you want.
+The VM image we used for all the experiments was an **Ubuntu 14.10 desktop** distribution.
+Feel free to create your own, the VM configuration (network, ssh, ...) will be done automatically by the provided deployment scripts, so you just have to provide a **RAW img file** of the operating system you want.
 
 ## Deploy the environment
 
 ### Reserve nodes
 
-For all the experiments you'll need to reserve nodes *and* some private network adresses, a  /22 is fine, for example:
+For all the experiments you'll need to reserve nodes **and** some private network adresses, a  /22 is fine, for example:
 
 ``` shell
 oarsub -l slash_22=1+{"cluster='griffon'"}nodes=12,walltime=2:0:0 -t deploy /path/to/sleeping-script
 ```
 
-Generally the script `/path/to/sleeping-script` contains an 'infinite sleeping loop' that allows you to keep your reservation alive throughout the duration of the reservation.
+Generally the script `/path/to/sleeping-script` contains an *infinite sleeping loop* that allows you to keep your reservation alive throughout the whole reservation duration.
 
 ### Deploy the custom image on nodes
 
@@ -103,7 +142,7 @@ Retrieve the list of reserved nodes, and deploy your image:
 
 ``` shell
 oarprint host > files/nodes
-kadeploy3 -e <custom_image> -f ./files/nodes  -o ./files/nodes_ok -k
+kadeploy3 -e <custom_image> -f ./files/nodes  -o ./files/nodes_ok
 ```
 
 ### Environment configuration
@@ -159,39 +198,25 @@ The following script will take care about everything:
 
 ## Launch the experimentations
 
-### Get or generate the JSON file of the experiment you want to replay
-
-The scenarios JSON files for each experiments can be directly retrieved [here](https://github.com/btrplace/migrations-UCC-15/tree/master/src/test/java/org/btrplace/scheduler/ucc15).
-
-Altenatively, you can regenerate them from this current git repository, just do the following:
-
-Requirements:
-* JDK 8+
-* maven 3+
-
-``` shell
-# Get and compile the UCC'15 version of the BtrPlace scheduler
-git clone -b ucc-15 --single-branch --depth 1 https://github.com/btrplace/scheduler-devs.git
-cd scheduler-devs
-mvn -Dmaven.test.skip=true install
-cd ../
-
-# Generate all experiments JSON files (use at least 2G for JVM memory allocation pool) 
-git clone --depth 1 https://github.com/btrplace/migrations-UCC-15.git
-cd migrations-UCC-15
-MAVEN_OPTS="-Xmx2G -Xms2G" mvn compiler:testCompile surefire:test
-```
-
 ### Get the BtrPlace plan executor for g5k
 
 Requirements:
 * JDK 8+
 * maven 3+
 
-Retrieve the executor from [this repository](https://github.com/btrplace/g5k-executor) and compile it:
+First, retrieve and compile the UCC'15 version of the BtrPlace scheduler:
 
 ``` shell
-git clone -b ucc-15 https://github.com/btrplace/g5k-executor.git
+git clone --depth 1 https://github.com/btrplace/scheduler-ucc-15.git
+cd scheduler-ucc-15
+mvn -Dmaven.test.skip=true install
+cd ../
+```
+
+Then, retrieve the UCC'15 version of the g5k executor from [this repository](https://github.com/btrplace/g5k-executor) and compile it:
+
+``` shell
+git clone -b ucc-15 --single-branch --depth 1 https://github.com/btrplace/g5k-executor.git
 cd g5k-executor
 mvn -Dmaven.test.skip=true package
 ```
@@ -219,6 +244,19 @@ g5kExecutor [-d scripts_dir] (-mvm|-buddies -p <x>) -i <json_file> -o <output_fi
  -o (--output-csv) VAL                 : Print actions durations to this file
 ```
 
+### Get or generate the JSON files of the experiments you want to replay
+
+Each JSON file, that describe a full reconfiguration plan generated by the BtrPlace scheduler, can be directly retrieved [here](https://github.com/btrplace/migrations-UCC-15/tree/master/src/test/java/org/btrplace/scheduler/ucc15).
+
+Altenatively, you can regenerate them from the current git repository, just do the following:
+
+``` shell
+# Generate all experiments JSON files (use at least 2G for JVM memory allocation pool) 
+git clone --depth 1 https://github.com/btrplace/migrations-UCC-15.git
+cd migrations-UCC-15
+MAVEN_OPTS="-Xmx2G -Xms2G" mvn compiler:testCompile surefire:test
+```
+
 ### Prepare the scenario execution
 
 First, you'll just need to edit the migration script `g5k-1.0-SNAPSHOT/scripts/migrate.sh` and modify the variable `VM_BASE_IMG` to match your custom VM image location.
@@ -234,7 +272,7 @@ griffon-61 node#1
 ...
 ```
 
-**Note**: Start trafic shaping if necessary by executing the script `trafic_shaping.sh` on desired nodes, it can be retrieved [here](https://github.com/btrplace/migrations-UCC-15/blob/master/scripts).
+**Note**: Start trafic shaping if necessary by executing the script `trafic_shaping.sh` on desired nodes, it can be retrieved [here](https://github.com/btrplace/migrations-UCC-15/blob/master/utils).
 
 ### Start the reconfiguration plan execution:
 
@@ -257,6 +295,5 @@ Each experiment must be started **from the controler node**, here are some usage
 ``` shell
 ./g5kExecutor -buddies -p 3 -f -i <JSON_FILE> -o <OUTPUT_CSV>
 ```
-
 
 The `<OUTPUT_CSV>` file contains 3 fields: `ACTION;START;END` where `ACTION` corresponds the BtrPlace String representation of the action, `START` and `END` correspond respectively to the start and end time of the action in the form of timestamps.
