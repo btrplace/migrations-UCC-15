@@ -1,19 +1,15 @@
 #!/bin/bash
 
-# Create a bridge br0 and attach eth0 to it :
+# Create a bridge br0 and attach eth0 to it
 virsh iface-bridge eth0 br0
-brctl stp br0 off # Desactiver le spanning tree
-brctl setfd br0 0 # Mettre le forwarding delay a 0
+brctl stp br0 off # Disable spanning tree
+brctl setfd br0 0 # Set the forwarding delay to 0
 
-# Modify the routing :
+# Modify the routing
 NEW_ROUTE=$(echo `ip route | head -1` | sed 's/eth0/br0/g')
 ip route del `ip route | head -1`
 ip route del `ip route | head -1`
 ip route add $NEW_ROUTE
-
-# Clone the user SSH key to root + authorized keys
-cp /home/vinkherbache/.ssh/id* /root/.ssh/
-cat /home/vinkherbache/.ssh/authorized_keys >> /root/.ssh/authorized_keys
 
 # Generate a random UUID to differenciate libvirt hosts
 sed -i "s/#host_uuid = .*/host_uuid = \"`uuidgen`\"/g" /etc/libvirt/libvirtd.conf
