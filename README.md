@@ -149,10 +149,10 @@ kadeploy3 -e <custom_image> -f ./files/nodes  -o ./files/nodes_ok
 
 First, retrieve the deployments scripts located in the local [`utils/scripts-g5k` subfolder](https://github.com/btrplace/migrations-UCC-15/tree/master/utils/scripts-g5k).
 
-Alternatively, you can retrieve them from the [original repository](https://github.com/vincent-k/scripts-g5k):
+Alternatively, you can retrieve them from the [original repository](https://github.com/vincent-k/scripts-g5k) like this:
 
 ``` shell
-git clone -b ucc-15 https://github.com/vincent-k/scripts-g5k.git
+git clone -b ucc-15 --single-branch --depth 1 https://github.com/vincent-k/scripts-g5k.git
 cd scripts-g5k
 ```
 
@@ -274,7 +274,7 @@ griffon-61 node#1
 ...
 ```
 
-**Note**: Start trafic shaping if necessary by executing the script `trafic_shaping.sh` on desired nodes, it can be retrieved [here](https://github.com/btrplace/migrations-UCC-15/blob/master/utils).
+**Note**: Start trafic shaping if necessary by executing the script `trafic_shaping.sh` on desired nodes, it is located in the [sub-directory `utils/`](https://github.com/btrplace/migrations-UCC-15/blob/master/utils).
 
 ### Start the reconfiguration plan execution:
 
