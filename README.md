@@ -301,13 +301,13 @@ virsh -c <hosting_node> setmem vm-1 4G
 
 Obviously, this amount need to be lower or equal to the memory allocated to the VM at its creation (variable `VM_MEM` in the deployment `config` file).
 
-Then you can use `stress` to consume some memory, to verify how much memory consume a VM use:
+Then you can use `stress` to consume some memory. To verify how much memory consume a VM use:
 
 ``` shell
 virsh -c <hosting_node> dommemstat vm-1
 ```
 
-Look at the field `rss` (*Resident Set Size*) that represents, in KiB, how much memory is allocated to the VM **and** is actually in RAM.
+The corresponding field is `rss` (*Resident Set Size*). It represents, in KiB, how much memory is allocated to the VM **and** is actually in RAM.
 
 Then launch the workload on appropriate VMs as described in the paper, for example:
 
