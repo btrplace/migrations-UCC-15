@@ -26,10 +26,10 @@ src
                             └── mVM.java
 ```
 
-* `Performance` experiments presented on section `V.B.` are available in the `random` directory.
-* `Energy` experiments presented on section `V.C.1)` are available in the `energy` directory.
-* `Power capping` experiments presented on section `V.C.2)` are available in the `capping` directory.
-* `Scalability` experiments presented on section `V.D.` are available in the `scale` directory.
+* `Performance` experiments presented on section `V.B.` are available in the [`random` directory](https://github.com/btrplace/migrations-UCC-15/tree/master/src/test/java/org/btrplace/scheduler/ucc15/random).
+* `Energy` experiments presented on section `V.C.1)` are available in the [`energy` directory](https://github.com/btrplace/migrations-UCC-15/tree/master/src/test/java/org/btrplace/scheduler/ucc15/energy).
+* `Power capping` experiments presented on section `V.C.2)` are available in the [`capping` directory](https://github.com/btrplace/migrations-UCC-15/tree/master/src/test/java/org/btrplace/scheduler/ucc15/capping).
+* `Scalability` experiments presented on section `V.D.` are available in the [`scale` directory](https://github.com/btrplace/migrations-UCC-15/tree/master/src/test/java/org/btrplace/scheduler/ucc15/scale).
 
 You can either chose to use the provided JSON files to execute the experiments or to generate them by yourself using the corresponding java test classes (procedure described below).
 
@@ -109,7 +109,7 @@ UserKnownHostsFile /dev/null
 LogLevel quiet
 ```
 
-Be sure you configured SSH access from your account and that's all! you can now save your new image using the [tgz-g5k tool](https://www.grid5000.fr/mediawiki/index.php/TGZ-G5K), for example:
+**Be sure you configured SSH access from your account, and that's all!** You can now save your new image using the [tgz-g5k tool](https://www.grid5000.fr/mediawiki/index.php/TGZ-G5K), for example:
 
 ``` shell
 tgz-g5k > /tmp/custom_image.tgz
@@ -121,8 +121,10 @@ Finally register your new image by following the few steps described [here] (htt
 
 ### Create a custom VM image
 
-The VM image we used for all the experiments was an **Ubuntu 14.10 desktop** distribution.
-Feel free to create your own, the VM configuration (network, ssh, ...) will be done automatically by the provided deployment scripts, so you just have to provide a **RAW img file** of the operating system you want.
+The VM image that we used for all the experiments was an **Ubuntu 14.10 desktop** distribution.
+Feel free to create your own in a **RAW img file**, you only need to install the `stress` tool to be able to simulate memory intensive workloads.
+Also, make sure that no memory intensive application run on start-up, as they can cause longer migration durations.
+The overall VM configuration (network, ssh, ...) will be done automatically by the given deployment scripts.
 
 ## Deploy the environment
 
@@ -274,7 +276,30 @@ griffon-61 node#1
 ...
 ```
 
-**Note**: Start trafic shaping if necessary by executing the script `trafic_shaping.sh` on desired nodes, it is located in the [sub-directory `utils/`](https://github.com/btrplace/migrations-UCC-15/blob/master/utils).
+Finally, start trafic shaping if necessary by executing the script `trafic_shaping.sh` on desired nodes, it is located in the [sub-directory `utils/`](https://github.com/btrplace/migrations-UCC-15/blob/master/utils).
+The default parameters will limit the bandwidth to 500 Mbit/sec which corresponds to the traffic shaping applied in the `random` experiment.
+
+### Prepare the VMs
+
+Make the VMs consume the desired amount of memory and, if needed, execute a workload on appropriate VMs.
+
+A solution consists to set the memory allocated to the VM at the desired value and then make it consume its full amount of memory by using the `stress` cmd.
+
+For example, to allocate a maximum of 4 GiB of memory to the VM `vm-1`:
+
+``` shell
+virsh -c <hosting_node> setmem vm-1 4G
+```
+
+Obviously, this amount need to be lower or equal to the memory allocated to the VM at its creation (variable `VM_MEM` in the deployment `config` file).
+
+To verify how much memory consume a VM, use:
+
+``` shell
+virsh -c <hosting_node> dommemstat vm-1
+```
+
+Look at the field `rss` (*Resident Set Size*) that represents, in KiB, how much memory is allocated to the VM **and** is actually in RAM.
 
 ### Start the reconfiguration plan execution:
 
