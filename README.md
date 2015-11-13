@@ -215,7 +215,7 @@ The following script will take care about everything:
 
 
 
-## Launch the experimentations
+## Prepare the experiment
 
 
 ### Get the BtrPlace plan executor for g5k
@@ -279,30 +279,19 @@ MAVEN_OPTS="-server -Xmx2G -Xms2G" mvn compiler:testCompile surefire:test
 ```
 
 
-### Prepare the scenario execution
-
-First, you'll just need to edit the migration script `g5k-1.0-SNAPSHOT/scripts/migrate.sh` and modify the variable `VM_BASE_IMG` to match your custom VM image location.
-
-The `g5k-1.0-SNAPSHOT/scripts/translate` file must be modified to allow to translate VMs and g5k nodes names into the BtrPlace internal VMs and nodes names, like this:
-
-``` txt
-vm-1 vm#0
-vm-2 vm#1
-...
-griffon-60 node#0
-griffon-61 node#1
-...
-```
-
-Finally, start trafic shaping if necessary by executing the script `trafic_shaping.sh` on desired nodes, it is located in the [sub-directory `utils/`](https://github.com/btrplace/migrations-UCC-15/blob/master/utils).
-The default parameters will limit the bandwidth to 500 Mbit/sec which corresponds to the traffic shaping applied in the `random` experiment.
-
-
 ### Prepare the VMs
 
-Make the VMs consume the desired amount of memory and, if needed, execute a workload on appropriate VMs.
+As the intial placement may not correspond to the experiment setup, be sure to migrate each VM to its desired hosting node. You can use the `migrate.sh` script from `g5-executor`, for example:
 
-A solution consists to set the memory allocated to the VM at the desired value and then make it consume its full amount of memory by using the `stress` cmd.
+``` shell
+./g5k-1.0-SNAPSHOT/scripts/migrate.sh vm-1 griffon-1 griffon-2 1000 "-- live --verbose"
+```
+
+This will migrate `vm1` from `griffon-1` to `griffon-2` in live at 1 Gbit/sec with a real time progression overview.
+
+Then, make each VM consume the desired amount of memory and, if needed, execute a workload on appropriate VMs.
+
+A simple solution consists to set the memory allocated to the VM at the desired value and then make it consume its full amount of memory by using the `stress` cmd.
 
 For example, to allocate a maximum of 4 GiB of memory to the VM `vm-1`:
 
@@ -312,7 +301,7 @@ virsh -c <hosting_node> setmem vm-1 4G
 
 Obviously, this amount need to be lower or equal to the memory allocated to the VM at its creation (variable `VM_MEM` in the deployment `config` file).
 
-To verify how much memory consume a VM, use:
+Then you can use `stress` to consume some memory, to verify how much memory consume a VM use:
 
 ``` shell
 virsh -c <hosting_node> dommemstat vm-1
@@ -329,7 +318,28 @@ stress --vm 1000 --bytes 50K
 This command will run 1000 concurrent threads that will continuously allocate and free up 50 KiB of memory each.
 
 
-### Start the reconfiguration plan execution:
+### Final preparations
+
+The `g5k-1.0-SNAPSHOT/scripts/translate` file must be filled to translate VMs and g5k nodes names into the BtrPlace VMs and nodes names, it should look like this:
+
+``` txt
+vm-1    vm#0
+vm-2    vm#1
+...
+griffon-60  node#0
+griffon-61  node#1
+...
+```
+
+Each entry must contains first the real node/VM name and then the corresponding BtrPlace name **separated by a tabulation**.
+The BtrPlace numbering is defined incrementally according to the node/VM creation order (see the corresponding Java test classes to verify the order).
+
+If necessary, start the traffic shaping on desired nodes by executing the script `traffic_shaping.sh` located in the [sub-directory `utils/`](https://github.com/btrplace/migrations-UCC-15/blob/master/utils).
+The default parameters will limit the bandwidth to 500 Mbit/sec which corresponds to the traffic shaping applied in the `random` experiment.
+
+
+
+## Start the execution
 
 Each experiment must be started **from the controler node**, here are some usage examples:
 
