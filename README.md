@@ -131,6 +131,7 @@ Finally, register your new image by following the few steps described [here] (ht
 
 The VM image that we used for all the experiments was an **Ubuntu 14.10 desktop** distribution.
 Feel free to create your own in a **RAW img file**, you only need to install the `stress` tool to be able to simulate memory intensive workloads.
+
 Also, make sure that no memory intensive application run on start-up, as they can cause longer migration durations.
 The overall VM configuration (network, ssh, ...) will be done automatically by the given deployment scripts.
 
@@ -202,7 +203,7 @@ echo -n > files/vms_ips
 ```
 
 
-### Setup everything:
+### Configure nodes and VMs
 
 The following script will take care about everything:
 
@@ -210,8 +211,10 @@ The following script will take care about everything:
 /bin/bash configure_envionment.sh
 ```
 
-* Configure all nodes (Infiniband, NFS share, BMC, ..).
-* Start all VMs on hosting nodes and wait until they are booted.
+The deployment is realized in two consecutives phases:
+
+1. Configure all nodes (Infiniband, NFS share, BMC, ..).
+2. Start all VMs on hosting nodes and wait until they are booted.
 
 
 
