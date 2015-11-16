@@ -28,18 +28,18 @@ src
                             └── mVM.java
 ```
 
-* `Performance` experiments presented on section `V.B.` are available in the [`random` directory](https://github.com/btrplace/migrations-UCC-15/tree/master/src/test/java/org/btrplace/scheduler/ucc15/random).
-* `Energy` experiments presented on section `V.C.1)` are available in the [`energy` directory](https://github.com/btrplace/migrations-UCC-15/tree/master/src/test/java/org/btrplace/scheduler/ucc15/energy).
-* `Power capping` experiments presented on section `V.C.2)` are available in the [`capping` directory](https://github.com/btrplace/migrations-UCC-15/tree/master/src/test/java/org/btrplace/scheduler/ucc15/capping).
-* `Scalability` experiments presented on section `V.D.` are available in the [`scale` directory](https://github.com/btrplace/migrations-UCC-15/tree/master/src/test/java/org/btrplace/scheduler/ucc15/scale).
+* `Performance` experiment presented on section `V.B.` is available in the [`random` directory](https://github.com/btrplace/migrations-UCC-15/tree/master/src/test/java/org/btrplace/scheduler/ucc15/random).
+* `Energy` experiment presented on section `V.C.1)` is available in the [`energy` directory](https://github.com/btrplace/migrations-UCC-15/tree/master/src/test/java/org/btrplace/scheduler/ucc15/energy).
+* `Power capping` experiment presented on section `V.C.2)` is available in the [`capping` directory](https://github.com/btrplace/migrations-UCC-15/tree/master/src/test/java/org/btrplace/scheduler/ucc15/capping).
+* `Scalability` experiment presented on section `V.D.` is available in the [`scale` directory](https://github.com/btrplace/migrations-UCC-15/tree/master/src/test/java/org/btrplace/scheduler/ucc15/scale). As this experiment only consists to evaluate the scheduler computation time, there is nothing to execute/reproduce on *a real infrastructure*. However, you can execute the tests on your own machine to compare the results.
 
-You can either chose to use the provided JSON files to execute the experiments or to generate them by yourself using the corresponding java test classes (procedure described below).
+You can either chose to use the provided JSON files to execute the experiments or to generate them by yourself using the corresponding java test classes (procedure described below). As explained above, there is no JSON file for the `Scalability` experiment.
 
 
 
 ## Setup the environment
 
-All the experiments have been executed on the [Grid'5000 infrastructure](https://www.grid5000.fr/mediawiki/index.php/Grid5000:Home) (g5k), so you must have an account to be able to reproduce the experiments.
+All the experiments have been executed on the [Grid'5000 infrastructure](https://www.grid5000.fr/mediawiki/index.php/Grid5000:Home) (*g5k*), so you must have an account to be able to reproduce the experiments.
 We used both `Griffon` and `Graphene` clusters from the Nancy site ([network](https://www.grid5000.fr/mediawiki/index.php/Nancy:Network)/[hardware](https://www.grid5000.fr/mediawiki/index.php/Nancy:Hardware)).
 
 
@@ -275,12 +275,23 @@ Each JSON file describes a full reconfiguration plan of a particular scenario ge
 Alternatively, you can regenerate them from the current git repository, just do the following:
 
 ``` shell
-# Generate all experiments JSON files (use at least 2G for JVM memory allocation pool) 
+# Generate all experiments JSON files
 git clone --depth 1 https://github.com/btrplace/migrations-UCC-15.git
 cd migrations-UCC-15
-MAVEN_OPTS="-server -Xmx2G -Xms2G" mvn compiler:testCompile surefire:test
+mvn compiler:testCompile surefire:test
 ```
 
+This will replace all the provided JSON files for `Performance`, `Energy`, and `Power capping` experiments.
+
+**Note**: To execute `Scalability` experiments, we recommend to use at least 2 GiB RAM for JVM memory allocation pool. There is how to execute `BtrPlace` and `mVM` scale tests separately:
+
+``` shell
+# BtrPlace scale experiment:
+MAVEN_OPTS="-server -Xmx2G -Xms2G" mvn "-Dtest=**/scale/BtrPlace.java" compiler:testCompile surefire:test
+
+# mVM scale experiment:
+MAVEN_OPTS="-server -Xmx2G -Xms2G" mvn "-Dtest=**/scale/mVM.java" compiler:testCompile surefire:test
+```
 
 ### Prepare the VMs
 
