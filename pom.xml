@@ -135,7 +135,6 @@
                 <version>2.14.1</version>
                 <configuration>
                     <includes>
-                        <!--include>**/*.java</include-->
                         <include>**/capping/*.java</include>
                         <include>**/energy/*.java</include>
                         <include>**/random/*.java</include>
