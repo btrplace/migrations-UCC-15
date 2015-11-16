@@ -2,6 +2,8 @@
 
 This repository aims to provide a basis for reproducible migrations experiments presented on [UCC'15 conference](http://cyprusconferences.org/ucc2015) paper "Scheduling Live-Migrations for Fast, Adaptable and Energy Efficient Relocation Operations".
 
+
+
 ## List of experiments
 
 Here is the structure of the Java `src` directory (JSON and CSV files are not shown):
@@ -26,23 +28,26 @@ src
                             └── mVM.java
 ```
 
-* `Performance` experiments presented on section `V.B.` are available in the `random` directory.
-* `Energy` experiments presented on section `V.C.1)` are available in the `energy` directory.
-* `Power capping` experiments presented on section `V.C.2)` are available in the `capping` directory.
-* `Scalability` experiments presented on section `V.D.` are available in the `scale` directory.
+* `Performance` experiment presented on section `V.B.` is available in the [`random` directory](https://github.com/btrplace/migrations-UCC-15/tree/master/src/test/java/org/btrplace/scheduler/ucc15/random).
+* `Energy` experiment presented on section `V.C.1)` is available in the [`energy` directory](https://github.com/btrplace/migrations-UCC-15/tree/master/src/test/java/org/btrplace/scheduler/ucc15/energy).
+* `Power capping` experiment presented on section `V.C.2)` is available in the [`capping` directory](https://github.com/btrplace/migrations-UCC-15/tree/master/src/test/java/org/btrplace/scheduler/ucc15/capping).
+* `Scalability` experiment presented on section `V.D.` is available in the [`scale` directory](https://github.com/btrplace/migrations-UCC-15/tree/master/src/test/java/org/btrplace/scheduler/ucc15/scale). As this experiment only consists to evaluate the scheduler computation time, there is nothing to execute/reproduce on *a real infrastructure*. However, you can execute the tests on your own machine to compare the results.
 
-You can either chose to use the provided JSON files to execute each experiment or to generate them by yourself using the corresponding java test classes (procedure described below).
+You can either chose to use the provided JSON files to execute the experiments or to generate them by yourself using the corresponding java test classes (procedure described below). As explained above, there is no JSON file for the `Scalability` experiment.
+
+
 
 ## Setup the environment
 
-All the experiments have been executed on the [Grid'5000 infrastructure](https://www.grid5000.fr/mediawiki/index.php/Grid5000:Home) (g5k), so you must have an account in order to reproduce the experiments.
+All the experiments have been executed on the [Grid'5000 infrastructure](https://www.grid5000.fr/mediawiki/index.php/Grid5000:Home) (*g5k*), so you must have an account to be able to reproduce the experiments.
 We used both `Griffon` and `Graphene` clusters from the Nancy site ([network](https://www.grid5000.fr/mediawiki/index.php/Nancy:Network)/[hardware](https://www.grid5000.fr/mediawiki/index.php/Nancy:Hardware)).
+
 
 ### Create a custom image for g5k nodes
 
 Start from a g5k debian release, you can obtain the list of available images from cmdline `kaenv3 -l`, for example select: `wheezy-x64-base`. Then reserve a node and deploy the desired image on it, there is a great documentation for that on the [Grid'5000 wiki](https://www.grid5000.fr/mediawiki/index.php/Getting_Started).
 
-Once deployed, edit the `/etc/rc.local` file and add the following at the bottom (before `exit 0`):
+Once deployed, edit the `/etc/rc.local` file and add the following code at the bottom (before `exit 0`):
 
 ``` shell
 # Load appropriate KVM kernel modules :
@@ -81,7 +86,7 @@ sed -i "s/#host_uuid = .*/host_uuid = \"`uuidgen`\"/g" /etc/libvirt/libvirtd.con
 exit 0
 ```
 
-Finally, install and setup qemu and libvirt.
+Then, install and setup qemu and libvirt.
 A patched version of qemu that allows to retrieve VMs' dirty pages informations is available [here](https://github.com/btrplace/qemu-patch), simply follow the informations on the [wiki page](https://github.com/btrplace/qemu-patch/wiki) to see how it works.
 
 Then, modify the libvirt daemon config file (`/etc/libvirt/libvirtd.conf`) and set the following options:
@@ -109,22 +114,31 @@ UserKnownHostsFile /dev/null
 LogLevel quiet
 ```
 
-Be sure you configured SSH access from your account and that's all! you can now save your new image using the [tgz-g5k tool](https://www.grid5000.fr/mediawiki/index.php/TGZ-G5K), for example:
+Be sure you configured **SSH access from your account**, and that's all!
+
+You can now save your new image using the [tgz-g5k tool](https://www.grid5000.fr/mediawiki/index.php/TGZ-G5K), for example:
 
 ``` shell
 tgz-g5k > /tmp/custom_image.tgz
 ```
 
-Finally register your new image by following the few steps described [here] (https://www.grid5000.fr/mediawiki/index.php/Deploy_environment-OAR2#Describe_the_newly_created_environment_for_deployments).
+Finally, register your new image by following the few steps described [here] (https://www.grid5000.fr/mediawiki/index.php/Deploy_environment-OAR2#Describe_the_newly_created_environment_for_deployments).
 
 **Note**: All the modified configurations files and scripts described above are available [here](https://github.com/btrplace/migrations-UCC-15/tree/master/configs).
 
+
 ### Create a custom VM image
 
-The VM image we used for all the experiments was an **Ubuntu 14.10 desktop** distribution.
-Feel free to create your own, the VM configuration (network, ssh, ...) will be done automatically by the provided deployment scripts, so you just have to provide a **RAW img file** of the operating system you want.
+The VM image that we used for all the experiments was an **Ubuntu 14.10 desktop** distribution.
+Feel free to create your own in a **RAW img file**, you only need to install the `stress` tool to be able to simulate memory intensive workloads.
+
+Also, make sure that no memory intensive application run on start-up, as they can cause longer migration durations.
+The overall VM configuration (network, ssh, ...) will be done automatically by the given deployment scripts.
+
+
 
 ## Deploy the environment
+
 
 ### Reserve nodes
 
@@ -145,12 +159,15 @@ oarprint host > files/nodes
 kadeploy3 -e <custom_image> -f ./files/nodes  -o ./files/nodes_ok
 ```
 
+
 ### Environment configuration
 
-First, retrieve the UCC'15 version of the deployment scripts from [this repository](https://github.com/vincent-k/scripts-g5k):
+First, retrieve the deployments scripts located in the local [`utils/scripts-g5k` subfolder](https://github.com/btrplace/migrations-UCC-15/tree/master/utils/scripts-g5k).
+
+Alternatively, you can retrieve them from the [original repository](https://github.com/vincent-k/scripts-g5k) like this:
 
 ``` shell
-git clone -b ucc-15 https://github.com/vincent-k/scripts-g5k.git
+git clone -b ucc-15 --single-branch --depth 1 https://github.com/vincent-k/scripts-g5k.git
 cd scripts-g5k
 ```
 
@@ -185,7 +202,8 @@ echo -n > files/ips_names
 echo -n > files/vms_ips
 ```
 
-### Setup everything:
+
+### Configure nodes and VMs
 
 The following script will take care about everything:
 
@@ -193,10 +211,15 @@ The following script will take care about everything:
 /bin/bash configure_envionment.sh
 ```
 
-* Configure all nodes (Infiniband, NFS share, BMC, ..).
-* Start all VMs on hosting nodes and wait until they are booted.
+The deployment is realized in two consecutives phases:
 
-## Launch the experimentations
+1. Configure all nodes (Infiniband, NFS share, BMC, ..).
+2. Start all VMs on hosting nodes and wait until they are booted.
+
+
+
+## Prepare the experiment
+
 
 ### Get the BtrPlace plan executor for g5k
 
@@ -207,8 +230,8 @@ Requirements:
 First, retrieve and compile the UCC'15 version of the BtrPlace scheduler:
 
 ``` shell
-git clone --depth 1 https://github.com/btrplace/scheduler-ucc-15.git
-cd scheduler-ucc-15
+git clone --depth 1 https://github.com/btrplace/scheduler-UCC-15.git
+cd scheduler-UCC-15
 mvn -Dmaven.test.skip=true install
 cd ../
 ```
@@ -244,37 +267,93 @@ g5kExecutor [-d scripts_dir] (-mvm|-buddies -p <x>) -i <json_file> -o <output_fi
  -o (--output-csv) VAL                 : Print actions durations to this file
 ```
 
-### Get or generate the JSON files of the experiments you want to replay
 
-Each JSON file, that describe a full reconfiguration plan generated by the BtrPlace scheduler, can be directly retrieved [here](https://github.com/btrplace/migrations-UCC-15/tree/master/src/test/java/org/btrplace/scheduler/ucc15).
+### Get or generate the desired JSON files
 
-Altenatively, you can regenerate them from the current git repository, just do the following:
+Each JSON file describes a full reconfiguration plan of a particular scenario generated by the BtrPlace scheduler, they can be directly retrieved [here](https://github.com/btrplace/migrations-UCC-15/tree/master/src/test/java/org/btrplace/scheduler/ucc15).
+
+Alternatively, you can regenerate them from the current git repository, just do the following:
 
 ``` shell
-# Generate all experiments JSON files (use at least 2G for JVM memory allocation pool) 
+# Generate all experiments JSON files
 git clone --depth 1 https://github.com/btrplace/migrations-UCC-15.git
 cd migrations-UCC-15
-MAVEN_OPTS="-Xmx2G -Xms2G" mvn compiler:testCompile surefire:test
+mvn compiler:testCompile surefire:test
 ```
 
-### Prepare the scenario execution
+This will replace all the provided JSON files for `Performance`, `Energy`, and `Power capping` experiments.
 
-First, you'll just need to edit the migration script `g5k-1.0-SNAPSHOT/scripts/migrate.sh` and modify the variable `VM_BASE_IMG` to match your custom VM image location.
+**Note**: To execute `Scalability` experiments, we recommend to use at least 2 GiB RAM for JVM memory allocation pool. There is how to execute `BtrPlace` and `mVM` scale tests separately:
 
-The `g5k-1.0-SNAPSHOT/scripts/translate` file must be modified to allow to translate VMs and g5k nodes names into the BtrPlace internal VMs and nodes names, like this:
+``` shell
+# BtrPlace scale experiment:
+MAVEN_OPTS="-server -Xmx2G -Xms2G" mvn "-Dtest=**/scale/BtrPlace.java" compiler:testCompile surefire:test
+
+# mVM scale experiment:
+MAVEN_OPTS="-server -Xmx2G -Xms2G" mvn "-Dtest=**/scale/mVM.java" compiler:testCompile surefire:test
+```
+
+### Prepare the VMs
+
+As the intial placement may not correspond to the experiment setup, be sure to migrate each VM to its desired hosting node. You can use the `migrate.sh` script from `g5-executor`, for example:
+
+``` shell
+./g5k-1.0-SNAPSHOT/scripts/migrate.sh vm-1 griffon-1 griffon-2 1000 "-- live --verbose"
+```
+
+This will migrate `vm1` from `griffon-1` to `griffon-2` in live at 1 Gbit/sec with a real time progression overview.
+
+Then, make each VM consume the desired amount of memory and, if needed, execute a workload on appropriate VMs.
+
+A simple solution consists to set the memory allocated to the VM at the desired value and then make it consume its full amount of memory by using the `stress` cmd.
+
+For example, to allocate a maximum of 4 GiB of memory to the VM `vm-1`:
+
+``` shell
+virsh -c <hosting_node> setmem vm-1 4G
+```
+
+Obviously, this amount need to be lower or equal to the memory allocated to the VM at its creation (variable `VM_MEM` in the deployment `config` file).
+
+Then you can use `stress` to consume some memory. To verify how much memory consume a VM use:
+
+``` shell
+virsh -c <hosting_node> dommemstat vm-1
+```
+
+The corresponding field is `rss` (*Resident Set Size*). It represents, in KiB, how much memory is allocated to the VM **and** is actually in RAM.
+
+Then launch the workload on appropriate VMs as described in the paper, for example:
+
+``` shell
+stress --vm 1000 --bytes 50K
+```
+
+This command will run 1000 concurrent threads that will continuously allocate and free up 50 KiB of memory each.
+
+
+### Final preparations
+
+The `g5k-1.0-SNAPSHOT/scripts/translate` file must be filled to translate VMs and g5k nodes names into the BtrPlace VMs and nodes names, it should look like this:
 
 ``` txt
-vm-1 vm#0
-vm-2 vm#1
+vm-1    vm#0
+vm-2    vm#1
 ...
-griffon-60 node#0
-griffon-61 node#1
+griffon-60  node#0
+griffon-61  node#1
 ...
 ```
 
-**Note**: Start trafic shaping if necessary by executing the script `trafic_shaping.sh` on desired nodes, it can be retrieved [here](https://github.com/btrplace/migrations-UCC-15/blob/master/utils).
+Each entry must contains first the real node/VM name and then the corresponding BtrPlace name **separated by a tabulation**.
+The BtrPlace numbering is defined incrementally according to the node/VM creation order (see the corresponding Java test classes to verify the order).
 
-### Start the reconfiguration plan execution:
+If necessary, start the traffic shaping on desired nodes by executing the script `traffic_shaping.sh` located in the [sub-directory `utils/`](https://github.com/btrplace/migrations-UCC-15/blob/master/utils).
+The default parameters will limit the bandwidth to 500 Mbit/sec which corresponds to the traffic shaping applied in the `random` experiment.
+
+
+
+## Start the execution
 
 Each experiment must be started **from the controler node**, here are some usage examples:
 

@@ -1,0 +1,37 @@
+####################################### CONFIG ##########################################
+OUTPUT_DIR="`pwd`/files"
+
+# CTL NODE
+CTL_NODE="$OUTPUT_DIR/ctl_node"
+
+# NFS SRV NODE
+NFS_SRV="$OUTPUT_DIR/nfs_srv"
+NFS_INFINIBAND_IF="ib0"
+SHARED_STORAGE="yes"
+
+# NODES
+NODES_LIST="$OUTPUT_DIR/nodes_list"
+HOSTING_NODES="$OUTPUT_DIR/hosting_nodes"
+IDLE_NODES="$OUTPUT_DIR/idle_nodes"
+
+# BMC
+BMC_USER='admin'
+BMC_MDP='mdpbmc'
+
+# VMS
+VM_VCPU=1
+VM_MEM=4096
+NB_VMS_PER_NODE=2
+VM_BASE_IMG='/home/vinkherbache/images/ubuntu_desktop_10G.img'
+VM_BASE_IMG_NAME=$(basename $VM_BASE_IMG)
+VM_BASE_IMG_DIR="/tmp" # Put the VM base img to local nodes directory by default
+VM_PREFIX="vm-"
+BACKING_DIR="backing"
+IPS_MACS="$OUTPUT_DIR/ips_macs"
+IPS_NAMES="$OUTPUT_DIR/ips_names"
+VMS_IPS="$OUTPUT_DIR/vms_ips"
+
+# Set ssh parameters
+SSH_USER="root"
+SSH_OPTS=' -o StrictHostKeyChecking=no -o BatchMode=yes -o UserKnownHostsFile=/dev/null -o LogLevel=quiet '
+########################################################################################
