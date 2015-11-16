@@ -8,15 +8,16 @@ import org.btrplace.model.constraint.Fence;
 import org.btrplace.model.constraint.Offline;
 import org.btrplace.model.constraint.SatConstraint;
 import org.btrplace.model.view.ShareableResource;
+import org.btrplace.model.view.net.MinMTTRObjective;
 import org.btrplace.model.view.net.NetworkView;
 import org.btrplace.model.view.net.Switch;
 import org.btrplace.model.view.power.EnergyView;
-import org.btrplace.model.view.power.MinEnergyObjective;
 import org.btrplace.model.view.power.PowerBudget;
 import org.btrplace.plan.ReconfigurationPlan;
 import org.btrplace.scheduler.SchedulerException;
 import org.btrplace.scheduler.choco.DefaultChocoScheduler;
 import org.btrplace.scheduler.choco.DefaultParameters;
+import org.btrplace.scheduler.choco.view.net.CMinMTTRObjective;
 import org.btrplace.scheduler.choco.view.net.MigrateVMTransition;
 import org.btrplace.scheduler.choco.view.power.CMinEnergyObjective;
 import org.btrplace.scheduler.choco.view.power.CPowerBudget;
@@ -147,6 +148,7 @@ public class mVM {
         ps.getTransitionFactory().add(new MigrateVMTransition.Builder());
         // Register custom objectives
         ps.getConstraintMapper().register(new CMinEnergyObjective.Builder());
+        ps.getConstraintMapper().register(new CMinMTTRObjective.Builder());
         // Register new constraints
         ps.getConstraintMapper().register(new CPowerBudget.Builder());
 
@@ -169,7 +171,7 @@ public class mVM {
 
         // Set a custom objective
         DefaultChocoScheduler sc = new DefaultChocoScheduler(ps);
-        Instance i = new Instance(mo, cstrs,  new MinEnergyObjective());
+        Instance i = new Instance(mo, cstrs,  new MinMTTRObjective());
 
         ReconfigurationPlan p;
         try {

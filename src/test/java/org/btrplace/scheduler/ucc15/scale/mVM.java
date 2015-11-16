@@ -33,7 +33,7 @@ public class mVM {
     public void go() throws Exception {
         StringBuilder res = new StringBuilder("SIZE;DURATION\n");
         int nb = 10;
-        /*for (int i = 0; i < nb; i++) {
+        for (int i = 0; i < nb; i++) {
             res.append("x1;" + duration(decommissioning_10gb()) + ";mVM\n");
         }
         for (int i = 0; i < nb; i++) {
@@ -41,7 +41,7 @@ public class mVM {
         }
         for (int i = 0; i < nb; i++) {
             res.append("x4;" + duration(decommissioning_40gb()) + ";mVM\n");
-        }*/
+        }
         for (int i = 0; i < nb; i++) {
             res.append("x10;" + duration(decommissioning_100gb()) + ";mVM\n");
         }
