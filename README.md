@@ -33,7 +33,7 @@ src
 * `Power capping` experiment presented on section `V.C.2)` is available in the [`capping` directory](https://github.com/btrplace/migrations-UCC-15/tree/master/src/test/java/org/btrplace/scheduler/ucc15/capping).
 * `Scalability` experiment presented on section `V.D.` is available in the [`scale` directory](https://github.com/btrplace/migrations-UCC-15/tree/master/src/test/java/org/btrplace/scheduler/ucc15/scale). As this experiment only consists to evaluate the scheduler computation time, there is nothing to execute/reproduce on *a real infrastructure*. However, you can execute the tests on your own machine to compare the results.
 
-You can either chose to use the provided JSON files to execute the experiments or to generate them by yourself using the corresponding java test classes (procedure described below). As explained above, there is no JSON file for the `Scalability` experiment.
+You can either chose to use the provided JSON files to execute the experiments or to generate them by yourself using the corresponding java test classes (procedure described below).
 
 
 
@@ -150,19 +150,10 @@ oarsub -l slash_22=1+{"cluster='griffon'"}nodes=12,walltime=2:0:0 -t deploy /pat
 
 Generally the script `/path/to/sleeping-script` contains an *infinite sleeping loop* that allows you to keep your reservation alive throughout the whole reservation duration.
 
-### Deploy the custom image on nodes
 
-Retrieve the list of reserved nodes, and deploy your image:
+### Retrieve deployments scripts
 
-``` shell
-oarprint host > files/nodes
-kadeploy3 -e <custom_image> -f ./files/nodes  -o ./files/nodes_ok
-```
-
-
-### Environment configuration
-
-First, retrieve the deployments scripts located in the local [`utils/scripts-g5k` subfolder](https://github.com/btrplace/migrations-UCC-15/tree/master/utils/scripts-g5k).
+You need to retrieve the deployments scripts located in the local [`utils/scripts-g5k` subfolder](https://github.com/btrplace/migrations-UCC-15/tree/master/utils/scripts-g5k).
 
 Alternatively, you can retrieve them from the [original repository](https://github.com/vincent-k/scripts-g5k) like this:
 
@@ -170,6 +161,21 @@ Alternatively, you can retrieve them from the [original repository](https://gith
 git clone -b ucc-15 --single-branch --depth 1 https://github.com/vincent-k/scripts-g5k.git
 cd scripts-g5k
 ```
+
+**Note**: For the remaining steps, we consider that `scripts-g5k` is your **working directory**.
+
+
+### Deploy the custom image on nodes
+
+Retrieve the list of reserved nodes, and deploy your image:
+
+``` shell
+oarprint host > files/nodes
+kadeploy3 -e <custom_image> -f files/nodes  -o files/nodes_ok
+```
+
+
+### Environment configuration
 
 Then, edit the `config` file, here are the options you have to care about:
 
@@ -182,20 +188,20 @@ Define a controller node, an NFS node, hosting and idle nodes by adding servers 
 
 ``` shell
 # Define controler node, NFS server node, hosting and idle nodes
-head -1 files/nodes_ok > ./files/ctl_node
-head -2 | tail -1 files/nodes_ok > ./files/nfs_srv
+head -1 files/nodes_ok > files/ctl_node
+head -2 | tail -1 files/nodes_ok > files/nfs_srv
 tail -n+3 | head -5 files/nodes_ok > files/hosting_nodes
-tail -5 files/nodes_ok > files/idle_nodes
+tail -n+8 files/nodes_ok > files/idle_nodes
 ```
 
-In this example, the first node will be the controler, the second node the NFS server and the next 5 nodes will host the VMs.
+In this example, the first node will be the controler, the second one the NFS server and the next 5 nodes will host the VMs.
 
 Then populate the other files, it simply consists to create a global list of active nodes (hosting + idle) and to retrieve the list of reserved ip<->mac addresses. It can be done like this:
 
 ``` shell
 # Populate the global list of 'active' nodes and the list of reserved ips<->macs addresses
 cat files/hosting_nodes files/idle_nodes > files/nodes_list
-g5k-subnets -im > ./files/ips_macs
+g5k-subnets -im > files/ips_macs
 
 # Also ensure these two files are empty
 echo -n > files/ips_names
@@ -349,7 +355,7 @@ Each entry must contains first the real node/VM name and then the corresponding 
 The BtrPlace numbering is defined incrementally according to the node/VM creation order (see the corresponding Java test classes to verify the order).
 
 If necessary, start the traffic shaping on desired nodes by executing the script `traffic_shaping.sh` located in the [sub-directory `utils/`](https://github.com/btrplace/migrations-UCC-15/blob/master/utils).
-The default parameters will limit the bandwidth to 500 Mbit/sec which corresponds to the traffic shaping applied in the `random` experiment.
+The default parameters will limit the bandwidth to 500 Mbit/sec which corresponds to the traffic shaping applied in the `Performance` experiment.
 
 
 
