@@ -50,7 +50,7 @@ Start from a g5k debian release, you can obtain the list of available images fro
 Once deployed, edit the `/etc/rc.local` file and add the following code at the bottom (before `exit 0`):
 
 ``` shell
-# Load appropriate KVM kernel modules :
+# Load appropriate KVM kernel modules
 modprobe kvm
 [ $(cat /proc/cpuinfo | grep Intel | wc -l) -gt 0 ] &&  modprobe kvm_intel || modprobe kvm_amd
 
@@ -175,7 +175,7 @@ kadeploy3 -e <custom_image> -f files/nodes  -o files/nodes_ok
 ```
 
 
-### Environment configuration
+### Setup your environment
 
 Then, edit the `config` file, here are the options you have to care about:
 
@@ -209,7 +209,7 @@ echo -n > files/vms_ips
 ```
 
 
-### Configure nodes and VMs
+### Deploy
 
 The following script will take care about everything:
 
