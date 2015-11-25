@@ -289,7 +289,7 @@ mvn compiler:testCompile surefire:test
 
 This will replace all the provided JSON files for `Performance`, `Energy`, and `Power capping` experiments.
 
-**Note**: To execute `Scalability` experiments, we recommend to use at least 2 GiB RAM for JVM memory allocation pool. There is how to execute `BtrPlace` and `mVM` scale tests separately:
+**Note**: To execute `Scalability` experiments, we recommend to use at least 2 GiB RAM for JVM memory allocation pool. Here is how to execute `BtrPlace` and `mVM` scale tests separately:
 
 ``` shell
 # BtrPlace scale experiment:
