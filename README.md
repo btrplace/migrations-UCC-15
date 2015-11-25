@@ -31,7 +31,7 @@ src
 * `Performance` experiment presented on section `V.B.` is available in the [`random` directory](https://github.com/btrplace/migrations-UCC-15/tree/master/src/test/java/org/btrplace/scheduler/ucc15/random).
 * `Energy` experiment presented on section `V.C.1)` is available in the [`energy` directory](https://github.com/btrplace/migrations-UCC-15/tree/master/src/test/java/org/btrplace/scheduler/ucc15/energy).
 * `Power capping` experiment presented on section `V.C.2)` is available in the [`capping` directory](https://github.com/btrplace/migrations-UCC-15/tree/master/src/test/java/org/btrplace/scheduler/ucc15/capping).
-* `Scalability` experiment presented on section `V.D.` is available in the [`scale` directory](https://github.com/btrplace/migrations-UCC-15/tree/master/src/test/java/org/btrplace/scheduler/ucc15/scale). As this experiment only consists to evaluate the scheduler computation time, there is nothing to execute/reproduce on *a real infrastructure*. However, you can execute the tests on your own machine to compare the results.
+* `Scalability` experiment presented on section `V.D.` is available in the [`scale` directory](https://github.com/btrplace/migrations-UCC-15/tree/master/src/test/java/org/btrplace/scheduler/ucc15/scale). As this experiment only consists to evaluate the scheduler computation time, there is nothing to execute/reproduce on *a real infrastructure*. However, you can execute the tests on your own machine to compare the results. For comparison, the results presented in the paper were executed on an Intel CPU i7-4600U @ 2.10Ghz.
 
 You can either chose to use the provided JSON files to execute the experiments or to generate them by yourself using the corresponding java test classes (procedure described below).
 
